@@ -1,0 +1,1581 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block title %}{{ tipo }} Producto{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 12px 12px 0 0;
+        margin-bottom: 0;
+        box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+    }
+
+    .form-header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .form-header h1::before {
+        content: "📦";
+        font-size: 32px;
+    }
+
+    .form-content {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 15px rgba(30, 58, 138, 0.1);
+        padding: 0;
+    }
+
+    .new-product-form {
+        padding: 30px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .form-group {
+        position: relative;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 14px;
+        letter-spacing: 0.025em;
+    }
+
+    .form-group label::after {
+        content: " *";
+        color: #ef4444;
+        font-weight: bold;
+    }
+
+    .form-input, .form-select, .form-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background: #ffffff;
+        color: #374151;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        background: #f8fafc;
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+    }
+
+    .small-input {
+        max-width: 200px;
+    }
+
+    /* Estilos para dropdown personalizado de proveedores */
+    .custom-dropdown-container {
+        position: relative;
+    }
+
+    .custom-dropdown {
+        position: relative;
+        width: 100%;
+    }
+
+    .dropdown-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 16px;
+        min-height: 48px;
+    }
+
+    .dropdown-header:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .dropdown-header.active {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .dropdown-placeholder {
+        color: #6b7280;
+        transition: color 0.3s ease;
+    }
+
+    .dropdown-placeholder.has-selection {
+        color: #1e40af;
+        font-weight: 500;
+    }
+
+    .dropdown-arrow {
+        color: #9ca3af;
+        transition: all 0.3s ease;
+        font-size: 12px;
+    }
+
+    .dropdown-header.active .dropdown-arrow {
+        transform: rotate(180deg);
+        color: #3b82f6;
+    }
+
+    .dropdown-content {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        border: 2px solid #3b82f6;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        z-index: 1000;
+        max-height: 280px;
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+    }
+
+    .dropdown-content.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .dropdown-search {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+    }
+
+    .dropdown-search input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        background: #ffffff;
+        transition: all 0.3s ease;
+    }
+
+    .dropdown-search input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+
+    .dropdown-options {
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 4px;
+    }
+
+    .dropdown-option {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        margin: 2px 0;
+    }
+
+    .dropdown-option:hover {
+        background: rgba(59, 130, 246, 0.08);
+    }
+
+    .dropdown-option input[type="checkbox"] {
+        display: none;
+    }
+
+    .option-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #d1d5db;
+        border-radius: 4px;
+        margin-right: 12px;
+        position: relative;
+        background: white;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .dropdown-option input[type="checkbox"]:checked + .option-checkbox {
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        border-color: #3b82f6;
+    }
+
+    .dropdown-option input[type="checkbox"]:checked + .option-checkbox::after {
+        content: "✓";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .option-text {
+        flex: 1;
+        font-size: 14px;
+        color: #374151;
+        font-weight: 500;
+    }
+
+    .dropdown-option input[type="checkbox"]:checked ~ .option-text {
+        color: #1e40af;
+        font-weight: 600;
+    }
+
+    .selected-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+        min-height: 20px;
+    }
+
+    .provider-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        color: white;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        gap: 8px;
+        animation: slideInTag 0.3s ease;
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+
+    .provider-tag .remove-tag {
+        cursor: pointer;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    .provider-tag .remove-tag:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+
+    @keyframes slideInTag {
+        from { opacity: 0; transform: translateX(-20px) scale(0.8); }
+        to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    /* Estilos para las tarjetas de unidades de medida */
+    .unit-cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin-top: 12px;
+        max-height: 250px;
+        overflow-y: auto;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Para pantallas grandes, mostrar más columnas ya que tenemos ancho completo */
+    @media (min-width: 1024px) {
+        .unit-cards-container {
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 12px;
+            max-height: 200px;
+        }
+    }
+
+    /* Para pantallas extra grandes, aprovechar todo el ancho */
+    @media (min-width: 1200px) {
+        .unit-cards-container {
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            max-height: 180px;
+        }
+    }
+
+    .unit-card {
+        position: relative;
+    }
+
+    .unit-card input[type="radio"] {
+        display: none;
+    }
+
+    .unit-card-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 8px;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        position: relative;
+        min-height: 80px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .unit-card-label:hover {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.05);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .unit-card input[type="radio"]:checked + .unit-card-label {
+        border-color: #3b82f6;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2), 0 4px 12px rgba(59, 130, 246, 0.15);
+    }
+
+    .unit-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .unit-card input[type="radio"]:checked + .unit-card-label .unit-icon {
+        transform: scale(1.1);
+    }
+
+    .unit-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: #374151;
+        text-align: center;
+        line-height: 1.2;
+        transition: all 0.3s ease;
+    }
+
+    .unit-card input[type="radio"]:checked + .unit-card-label .unit-name {
+        color: #1e40af;
+    }
+
+    .unit-check {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 20px;
+        height: 20px;
+        background: linear-gradient(45deg, #22c55e, #16a34a);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        opacity: 0;
+        transform: scale(0.5);
+        transition: all 0.3s ease;
+    }
+
+    .unit-card input[type="radio"]:checked + .unit-card-label .unit-check {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-end;
+        padding-top: 30px;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 30px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .btn-cancel {
+        background: #f8fafc;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-cancel:hover {
+        background: #e2e8f0;
+        color: #475569;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .btn-save {
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-save:hover {
+        background: linear-gradient(45deg, #2563eb, #1d4ed8);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        transform: translateY(-2px);
+    }
+
+    /* Messages */
+    .messages {
+        margin-top: 20px;
+    }
+
+    .alert {
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: none;
+        font-weight: 500;
+    }
+
+    .alert-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border-left: 4px solid #f59e0b;
+    }
+
+    .alert-success {
+        background: rgba(34, 197, 94, 0.1);
+        color: #059669;
+        border-left: 4px solid #22c55e;
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+        border-left: 4px solid #ef4444;
+    }
+
+    /* Input Icons */
+    .form-group::before {
+        position: absolute;
+        right: 12px;
+        top: 38px;
+        color: #9ca3af;
+        font-size: 16px;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .form-group:has([name*="codigo"])::before { content: "🏷️"; }
+    .form-group:has([name*="nombre"])::before { content: "📝"; }
+    .form-group:has([name*="marca"])::before { content: "🏪"; }
+    .form-group:has([name*="cantidad"])::before { content: "📦"; }
+    .form-group:has([name*="precio"])::before { content: "💰"; }
+    .form-group:has([name*="descripcion"])::before { content: "📄"; }
+
+    /* Scrollbar personalizada */
+    .unit-cards-container::-webkit-scrollbar,
+    .dropdown-options::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .unit-cards-container::-webkit-scrollbar-track,
+    .dropdown-options::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+
+    .unit-cards-container::-webkit-scrollbar-thumb,
+    .dropdown-options::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+
+    .unit-cards-container::-webkit-scrollbar-thumb:hover,
+    .dropdown-options::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .new-product-form {
+            padding: 20px;
+        }
+        
+        .form-header {
+            padding: 20px;
+        }
+        
+        .form-header h1 {
+            font-size: 24px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+        
+        .unit-cards-container {
+            grid-template-columns: repeat(2, 1fr);
+            max-height: 150px;
+        }
+        
+        .provider-tag {
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+    }
+
+    /* Loading State */
+    .btn-save:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-save.loading {
+        position: relative;
+        color: transparent;
+    }
+
+    .btn-save.loading::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        top: 50%;
+        left: 50%;
+        margin-left: -8px;
+        margin-top: -8px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Estilos para el modal de éxito */
+    .success-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+
+    .success-modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .success-modal {
+        background: #ffffff;
+        border-radius: 16px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        transform: scale(0.7) translateY(-50px);
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+    }
+
+    .success-modal-overlay.show .success-modal {
+        transform: scale(1) translateY(0);
+    }
+
+    .success-header {
+        text-align: center;
+        padding: 30px 30px 20px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .success-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+        animation: bounceIn 0.6s ease;
+    }
+
+    .success-header h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+    }
+
+    .success-header p {
+        font-size: 16px;
+        opacity: 0.9;
+        margin: 0;
+    }
+
+    .success-content {
+        padding: 25px 30px;
+    }
+
+    .product-summary {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .product-summary h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1e40af;
+        margin: 0 0 15px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 14px;
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .summary-item strong {
+        color: #374151;
+        font-weight: 600;
+    }
+
+    .summary-item span {
+        color: #1e40af;
+        font-weight: 500;
+    }
+
+    .editable-field {
+        background: rgba(59, 130, 246, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        cursor: text;
+        transition: all 0.3s ease;
+        display: inline-block;
+        min-width: 80px;
+    }
+
+    .editable-field:hover {
+        background: rgba(59, 130, 246, 0.2);
+    }
+
+    .editable-field:focus {
+        outline: 2px solid #3b82f6;
+        background: white;
+    }
+
+    .edit-hint {
+        color: #9ca3af;
+        font-size: 11px;
+        margin-left: 8px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .summary-item:hover .edit-hint {
+        opacity: 1;
+    }
+
+    .success-actions {
+        display: flex;
+        gap: 12px;
+        padding: 20px 30px 30px;
+        justify-content: center;
+    }
+
+    .success-actions .btn {
+        flex: 1;
+        max-width: 200px;
+        justify-content: center;
+        padding: 12px 20px;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary {
+        background: #f8fafc;
+        color: #64748b;
+        border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+        background: #e2e8f0;
+        color: #475569;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(45deg, #2563eb, #1d4ed8);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+    }
+
+    @keyframes bounceIn {
+        0% { transform: scale(0.3); opacity: 0; }
+        50% { transform: scale(1.05); }
+        70% { transform: scale(0.9); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Responsive para el modal */
+    @media (max-width: 768px) {
+        .success-modal {
+            width: 95%;
+            margin: 20px;
+        }
+
+        .success-header {
+            padding: 25px 20px 15px;
+        }
+
+        .success-content {
+            padding: 20px;
+        }
+
+        .success-actions {
+            flex-direction: column;
+            padding: 15px 20px 25px;
+        }
+
+        .success-actions .btn {
+            max-width: none;
+            width: 100%;
+        }
+
+        .success-icon {
+            font-size: 40px;
+        }
+
+        .success-header h2 {
+            font-size: 20px;
+        }
+    }
+
+    .field-errors {
+        margin-top: 5px;
+    }
+
+    .error-message {
+        color: #dc2626;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .form-input.error, .form-select.error, .form-textarea.error {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .form-input.valid, .form-select.valid, .form-textarea.valid {
+        border-color: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="product-form-container">
+    <div class="form-header">
+        <h1>{{ tipo }} producto{{ dato }}</h1>
+    </div>
+    
+    <div class="form-content">
+        <form class="new-product-form" method="post" id="productForm">
+            {% csrf_token %}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ form.codigo.id_for_label }}">Código del Producto</label>
+                    {% render_field form.codigo class="form-input" placeholder="Ej: PROD001" %}
+                    {% if form.codigo.errors %}
+                        <div class="field-errors">
+                            {% for error in form.codigo.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.nombre.id_for_label }}">Nombre del Producto</label>
+                    {% render_field form.nombre class="form-input" placeholder="Ej: Laptop Dell Inspiron" %}
+                    {% if form.nombre.errors %}
+                        <div class="field-errors">
+                            {% for error in form.nombre.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="proveedores">Proveedor/es</label>
+                    <div class="custom-dropdown-container">
+                        <div class="custom-dropdown" id="provider-dropdown">
+                            <div class="dropdown-header" id="dropdown-header">
+                                <span class="dropdown-placeholder">Seleccionar proveedores...</span>
+                                <i class="dropdown-arrow">▼</i>
+                            </div>
+                            <div class="dropdown-content" id="dropdown-content">
+                                <div class="dropdown-search">
+                                    <input type="text" placeholder="🔍 Buscar proveedor..." id="search-providers">
+                                </div>
+                                <div class="dropdown-options" id="dropdown-options">
+                                    {% for proveedor in form.proveedores.field.queryset %}
+                                        <label class="dropdown-option">
+                                            <input type="checkbox" 
+                                                   name="proveedores" 
+                                                   value="{{ proveedor.id }}" 
+                                                   {% if proveedor in form.instance.proveedores.all %}checked{% endif %}>
+                                            <span class="option-checkbox"></span>
+                                            <span class="option-text">{{ proveedor.nombre }}</span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="selected-tags" id="selected-tags">
+                            <!-- Los tags seleccionados aparecerán aquí -->
+                        </div>
+                    </div>
+                    {% if form.proveedores.errors %}
+                        <div class="field-errors">
+                            {% for error in form.proveedores.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.marca.id_for_label }}">Marca</label>
+                    {% render_field form.marca class="form-input" placeholder="Ej: Dell, HP, Samsung" %}
+                    {% if form.marca.errors %}
+                        <div class="field-errors">
+                            {% for error in form.marca.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.cantidad.id_for_label }}">Stock Disponible</label>
+                    {% render_field form.cantidad class="form-input small-input" placeholder="0" %}
+                    {% if form.cantidad.errors %}
+                        <div class="field-errors">
+                            {% for error in form.cantidad.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.precio.id_for_label }}">Precio Unitario</label>
+                    {% render_field form.precio class="form-input small-input" placeholder="0.00" %}
+                    {% if form.precio.errors %}
+                        <div class="field-errors">
+                            {% for error in form.precio.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="{{ form.unidad_medida.id_for_label }}">Unidad de Medida</label>
+                    <div class="unit-cards-container">
+                        {% comment %}
+                        Este campo utiliza las opciones definidas en el modelo Django.
+                        Las opciones se renderizan dinámicamente desde form.unidad_medida.field.choices
+                        {% endcomment %}
+                        {% for value, label in form.unidad_medida.field.choices %}
+                            {% if value %}
+                                <div class="unit-card">
+                                    <input type="radio" 
+                                           name="unidad_medida" 
+                                           value="{{ value }}" 
+                                           id="unit_{{ value }}"
+                                           {% if form.instance.unidad_medida == value %}checked{% endif %}>
+                                    <label for="unit_{{ value }}" class="unit-card-label">
+                                        <div class="unit-icon">
+                                            {% if "kilo" in label|lower or "gramo" in label|lower or "tonelada" in label|lower %}
+                                                ⚖️
+                                            {% elif "litro" in label|lower or "mililitro" in label|lower %}
+                                                🧊
+                                            {% elif "metro" in label|lower or "centimetro" in label|lower %}
+                                                📏
+                                            {% elif "caja" in label|lower or "paquete" in label|lower %}
+                                                📦
+                                            {% elif "unidad" in label|lower or "pieza" in label|lower %}
+                                                🔢
+                                            {% else %}
+                                                📋
+                                            {% endif %}
+                                        </div>
+                                        <div class="unit-name">{{ label }}</div>
+                                        <div class="unit-check">✓</div>
+                                    </label>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if form.unidad_medida.errors %}
+                        <div class="field-errors">
+                            {% for error in form.unidad_medida.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                    {% render_field form.descripcion class="form-textarea" placeholder="Describe las características principales del producto..." %}
+                    {% if form.descripcion.errors %}
+                        <div class="field-errors">
+                            {% for error in form.descripcion.errors %}
+                                <span class="error-message">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'productos' %}" class="btn btn-cancel">
+                    ← Volver
+                </a>
+                <button type="submit" class="btn btn-save" id="saveBtn">
+                    💾 Guardar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Variable global para almacenar los datos del formulario
+    var savedFormData = {};
+    
+    // Sistema de dropdown personalizado para proveedores
+    initCustomDropdown();
+    
+    // Función para capturar TODOS los datos posibles del formulario (ultra mejorada)
+    function captureAllFormData() {
+        console.log('=== CAPTURANDO TODOS LOS DATOS DEL FORMULARIO ===');
+        
+        // Imprimir TODOS los campos disponibles para debugging
+        $('input, select, textarea').each(function() {
+            var element = $(this);
+            var name = element.attr('name');
+            var id = element.attr('id');
+            var value = element.val();
+            var type = element.attr('type');
+            
+            if ((name || id) && value) {
+                console.log(`📋 Campo: ${name || id} | ID: ${id} | Valor: "${value}" | Tipo: ${type || element.prop('tagName')}`);
+            }
+        });
+        
+        // Estrategia ultra específica: buscar exactamente los campos que veo en tu imagen
+        function getFieldValueUltra(fieldName) {
+            var value = null;
+            
+            // Buscar por ID de Django primero (más probable)
+            var djangoId = `#id_${fieldName}`;
+            if ($(djangoId).length > 0) {
+                value = $(djangoId).val();
+                if (value && value.trim() !== '') {
+                    console.log(`✅ ${fieldName} encontrado por Django ID "${djangoId}": "${value}"`);
+                    return value.trim();
+                }
+            }
+            
+            // Buscar por nombre
+            var byName = `input[name="${fieldName}"], select[name="${fieldName}"], textarea[name="${fieldName}"]`;
+            if ($(byName).length > 0) {
+                value = $(byName).val();
+                if (value && value.trim() !== '') {
+                    console.log(`✅ ${fieldName} encontrado por nombre "${byName}": "${value}"`);
+                    return value.trim();
+                }
+            }
+            
+            // Buscar por atributos parciales
+            var partialSelectors = [
+                `[name*="${fieldName}"]`,
+                `[id*="${fieldName}"]`,
+                `input[placeholder*="${fieldName}"]`
+            ];
+            
+            for (var i = 0; i < partialSelectors.length; i++) {
+                var elements = $(partialSelectors[i]);
+                if (elements.length > 0) {
+                    value = elements.first().val();
+                    if (value && value.trim() !== '') {
+                        console.log(`✅ ${fieldName} encontrado por selector parcial "${partialSelectors[i]}": "${value}"`);
+                        return value.trim();
+                    }
+                }
+            }
+            
+            console.log(`❌ Campo ${fieldName} NO encontrado`);
+            return null;
+        }
+        
+        // Capturar datos con la función ultra específica
+        savedFormData = {
+            codigo: getFieldValueUltra('codigo'),
+            nombre: getFieldValueUltra('nombre'), 
+            marca: getFieldValueUltra('marca'),
+            cantidad: getFieldValueUltra('cantidad'),
+            precio: getFieldValueUltra('precio')
+        };
+        
+        console.log('=== DATOS FINALES CAPTURADOS (ULTRA) ===');
+        console.log('Código:', savedFormData.codigo);
+        console.log('Nombre:', savedFormData.nombre);
+        console.log('Marca:', savedFormData.marca);
+        console.log('Cantidad:', savedFormData.cantidad);
+        console.log('Precio:', savedFormData.precio);
+        console.log('=======================================');
+        
+        return savedFormData;
+    }
+    
+    // Capturar datos cuando el usuario interactúa con el formulario
+    $('input, select, textarea').on('change blur', function() {
+        captureAllFormData();
+    });
+    
+    // Manejar envío del formulario (SOLUCIÓN DIRECTA)
+    $('#productForm').on('submit', function(e) {
+        var submitBtn = $('#saveBtn');
+        submitBtn.addClass('loading').prop('disabled', true);
+        
+        // CAPTURA INMEDIATA Y DIRECTA - ANTES DE QUE SE PROCESE
+        console.log('=== CAPTURA INMEDIATA ANTES DEL ENVÍO ===');
+        
+        // Obtener valores directamente del DOM en este momento
+        var formData = new FormData(this);
+        
+        // Capturar usando FormData
+        savedFormData = {
+            codigo: formData.get('codigo') || '',
+            nombre: formData.get('nombre') || '', 
+            marca: formData.get('marca') || '',
+            cantidad: formData.get('cantidad') || '',
+            precio: formData.get('precio') || ''
+        };
+        
+        // También intentar jQuery como respaldo
+        if (!savedFormData.codigo) savedFormData.codigo = $('input[name="codigo"]').val() || $('#id_codigo').val() || '';
+        if (!savedFormData.nombre) savedFormData.nombre = $('input[name="nombre"]').val() || $('#id_nombre').val() || '';
+        if (!savedFormData.marca) savedFormData.marca = $('input[name="marca"]').val() || $('#id_marca').val() || '';
+        if (!savedFormData.cantidad) savedFormData.cantidad = $('input[name="cantidad"]').val() || $('#id_cantidad').val() || '';
+        if (!savedFormData.precio) savedFormData.precio = $('input[name="precio"]').val() || $('#id_precio').val() || '';
+        
+        console.log('📊 DATOS CAPTURADOS CON FORMDATA:');
+        console.log('Código:', savedFormData.codigo);
+        console.log('Nombre:', savedFormData.nombre);
+        console.log('Marca:', savedFormData.marca);
+        console.log('Cantidad:', savedFormData.cantidad);
+        console.log('Precio:', savedFormData.precio);
+        console.log('=====================================');
+        
+        // Guardar en localStorage como respaldo
+        try {
+            localStorage.setItem('ultimoProducto', JSON.stringify(savedFormData));
+            console.log('✅ Datos guardados en localStorage');
+        } catch (e) {
+            console.log('❌ No se pudo guardar en localStorage');
+        }
+        
+        // Permitir que el formulario se envíe normalmente a Django
+    });
+
+    // Verificar si se guardó exitosamente y recuperar datos
+    // Si hay mensajes de éxito de Django, mostrar el modal
+    if ($('.alert-success').length > 0) {
+        // Intentar recuperar datos del localStorage primero
+        try {
+            var datosGuardados = localStorage.getItem('ultimoProducto');
+            if (datosGuardados) {
+                savedFormData = JSON.parse(datosGuardados);
+                console.log('✅ Datos recuperados de localStorage:', savedFormData);
+                localStorage.removeItem('ultimoProducto'); // Limpiar después de usar
+            }
+        } catch (e) {
+            console.log('❌ No se pudieron recuperar datos de localStorage');
+        }
+        
+        // Intentar extraer datos del mensaje de Django como respaldo
+        var successMessage = $('.alert-success').text();
+        console.log('Mensaje de éxito encontrado:', successMessage);
+        
+        // Si no tenemos datos guardados, intentar extraerlos del mensaje
+        if (!savedFormData.nombre || savedFormData.nombre === '') {
+            extractDataFromMessage(successMessage);
+        }
+        
+        // Ocultar el mensaje de Django y mostrar nuestro modal
+        $('.alert-success').hide();
+        showSuccessModal();
+    }
+    
+    // Si hay un parámetro success en la URL
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === '1') {
+        showSuccessModal();
+        // Limpiar el parámetro de la URL sin recargar
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    // Función para extraer datos del mensaje de Django si es posible
+    function extractDataFromMessage(message) {
+        console.log('Intentando extraer datos del mensaje:', message);
+        
+        // Buscar el nombre del producto en el mensaje
+        var nombreMatch = message.match(/producto\s+"([^"]+)"/i);
+        if (nombreMatch) {
+            savedFormData.nombre = nombreMatch[1];
+            console.log('Nombre extraído del mensaje:', savedFormData.nombre);
+        }
+    }
+
+    function showSuccessModal() {
+        // Debug: mostrar todos los campos disponibles en consola
+        console.log('=== DEBUG: Campos del formulario ===');
+        $('input, select, textarea').each(function() {
+            if ($(this).attr('name') || $(this).attr('id')) {
+                console.log('Campo:', $(this).attr('name') || $(this).attr('id'), 'Valor:', $(this).val());
+            }
+        });
+        console.log('=====================================');
+        
+        // Crear el modal de éxito
+        var modalHtml = `
+            <div class="success-modal-overlay" id="successModal">
+                <div class="success-modal">
+                    <div class="success-header">
+                        <div class="success-icon">✅</div>
+                        <h2>¡Producto Guardado Exitosamente!</h2>
+                        <p>El producto se ha agregado correctamente al inventario.</p>
+                    </div>
+                    <div class="success-content">
+                        <div class="product-summary">
+                            <h3>📦 Resumen del Producto:</h3>
+                            <div class="summary-item">
+                                <strong>Código:</strong> 
+                                <span id="summary-codigo" contenteditable="true" class="editable-field">N/A</span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>Nombre:</strong> 
+                                <span id="summary-nombre" contenteditable="true" class="editable-field">N/A</span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>Stock:</strong> 
+                                <span id="summary-stock" contenteditable="true" class="editable-field">0</span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>Precio:</strong> 
+                                <span id="summary-precio" contenteditable="true" class="editable-field">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="success-actions">
+                        <button type="button" class="btn btn-secondary" id="goBackBtn">
+                            ← Volver a Lista de Productos
+                        </button>
+                        <button type="button" class="btn btn-primary" id="addAnotherBtn">
+                            ➕ Agregar Otro Producto
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('body').append(modalHtml);
+        
+        // Llenar el resumen directamente con los datos capturados
+        console.log('=== LLENANDO MODAL CON DATOS ===');
+        console.log('Datos disponibles:', savedFormData);
+        
+        // Usar los datos directamente sin tanto procesamiento
+        var codigo = savedFormData.codigo || 'Sin código';
+        var nombre = savedFormData.nombre || 'Sin nombre';
+        var marca = savedFormData.marca || '';
+        var cantidad = savedFormData.cantidad || '0';
+        var precio = savedFormData.precio || '0.00';
+        
+        // Si tenemos marca, agregarla al nombre
+        var nombreCompleto = nombre;
+        if (marca && marca.trim() !== '') {
+            nombreCompleto = `${nombre} - ${marca}`;
+        }
+        
+        // Formatear precio - mantener como string simple
+        var precioFinal = precio;
+        if (precio && precio !== '0' && precio !== '0.00') {
+            try {
+                var num = parseFloat(precio);
+                if (!isNaN(num)) {
+                    precioFinal = num.toFixed(2);
+                }
+            } catch (e) {
+                precioFinal = precio; // Usar el valor original si hay error
+            }
+        }
+        
+        console.log('📋 VALORES FINALES PARA EL MODAL:');
+        console.log('Código:', codigo);
+        console.log('Nombre completo:', nombreCompleto);
+        console.log('Cantidad:', cantidad);
+        console.log('Precio final:', precioFinal);
+        console.log('===============================');
+        
+        // Asignar directamente sin más validaciones
+        $('#summary-codigo').text(codigo);
+        $('#summary-nombre').text(nombreCompleto);
+        $('#summary-stock').text(cantidad);
+        $('#summary-precio').text(precioFinal);
+        
+        // Agregar evento para campos editables
+        $('.editable-field').on('blur', function() {
+            var field = $(this);
+            var value = field.text().trim();
+            console.log('Campo editado:', field.attr('id'), 'Nuevo valor:', value);
+        });
+        
+        // Mostrar el modal con animación
+        setTimeout(function() {
+            $('#successModal').addClass('show');
+        }, 100);
+        
+        // Manejar botones - AQUÍ ESTÁ LA MODIFICACIÓN PRINCIPAL
+        $('#goBackBtn').on('click', function() {
+            closeSuccessModal();
+            window.location.href = "{% url 'productos' %}";
+        });
+        
+        // MODIFICACIÓN: Redirigir a seleccionar_categoria en lugar de resetear el formulario
+        $('#addAnotherBtn').on('click', function() {
+            closeSuccessModal();
+            window.location.href = "{% url 'seleccionar_categoria' %}";
+        });
+        
+        // Cerrar modal al hacer clic fuera
+        $('#successModal').on('click', function(e) {
+            if (e.target === this) {
+                closeSuccessModal();
+            }
+        });
+        
+        // Cerrar modal con tecla Escape
+        $(document).on('keydown.modal', function(e) {
+            if (e.key === 'Escape') {
+                closeSuccessModal();
+            }
+        });
+    }
+
+    function closeSuccessModal() {
+        $('#successModal').removeClass('show');
+        setTimeout(function() {
+            $('#successModal').remove();
+            // Remover el event listener de escape
+            $(document).off('keydown.modal');
+        }, 300);
+    }
+
+    function resetForm() {
+        // Resetear todos los campos del formulario
+        $('#productForm')[0].reset();
+        
+        // Resetear checkboxes de proveedores
+        $('.dropdown-option input[type="checkbox"]').prop('checked', false);
+        updateSelectedTags();
+        updatePlaceholder();
+        
+        // Resetear radio buttons de unidades
+        $('input[name="unidad_medida"]').prop('checked', false);
+        
+        // Limpiar errores
+        $('.field-errors').remove();
+        $('.form-input, .form-textarea').removeClass('error valid');
+        
+        // Resetear el botón de guardar
+        $('#saveBtn').removeClass('loading').prop('disabled', false);
+        
+        // Scroll al inicio del formulario
+        $('html, body').animate({
+            scrollTop: $('.form-header').offset().top - 20
+        }, 500);
+        
+        // Focus en el primer campo después de un pequeño delay
+        setTimeout(function() {
+            $('input[name="codigo"]').focus();
+        }, 600);
+    }
+
+    // Validación en tiempo real para inputs normales
+    $('.form-input, .form-textarea').on('blur', function() {
+        var field = $(this);
+        var value = field.val().trim();
+        
+        // Remover mensajes de error previos
+        field.siblings('.field-errors').remove();
+        field.removeClass('error');
+        
+        // Validar campos requeridos
+        if (field.prop('required') && !value) {
+            showFieldError(field, 'Este campo es obligatorio');
+            return;
+        }
+        
+        // Validaciones específicas
+        if (field.attr('name') === 'codigo' && value) {
+            if (!/^[A-Za-z0-9\-_.]+$/.test(value)) {
+                showFieldError(field, 'El código solo puede contener letras, números, guiones y puntos');
+                return;
+            }
+        }
+        
+        if (field.attr('type') === 'number' && value) {
+            if (parseFloat(value) < 0) {
+                showFieldError(field, 'El valor no puede ser negativo');
+                return;
+            }
+        }
+        
+        // Marcar como válido
+        field.addClass('valid');
+    });
+
+    // Validación para unidad de medida
+    $('input[name="unidad_medida"]').on('change', function() {
+        var container = $('.unit-cards-container').parent();
+        container.find('.field-errors').remove();
+    });
+
+    function showFieldError(field, message) {
+        field.removeClass('valid').addClass('error');
+        var errorDiv = $('<div class="field-errors"><span class="error-message">' + message + '</span></div>');
+        field.after(errorDiv);
+    }
+
+    function initCustomDropdown() {
+        var $dropdownHeader = $('#dropdown-header');
+        var $dropdownContent = $('#dropdown-content');
+        var $searchInput = $('#search-providers');
+        var $selectedTags = $('#selected-tags');
+        var $placeholder = $('.dropdown-placeholder');
+        var isOpen = false;
+
+        // Toggle dropdown
+        $dropdownHeader.on('click', function(e) {
+            e.stopPropagation();
+            toggleDropdown();
+        });
+
+        // Cerrar dropdown al hacer clic fuera
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.custom-dropdown').length) {
+                closeDropdown();
+            }
+        });
+
+        // Búsqueda en tiempo real
+        $searchInput.on('input', function() {
+            var searchTerm = $(this).val().toLowerCase();
+            $('.dropdown-option').each(function() {
+                var text = $(this).find('.option-text').text().toLowerCase();
+                $(this).toggle(text.includes(searchTerm));
+            });
+        });
+
+        // Manejar selección de checkboxes
+        $('.dropdown-option input[type="checkbox"]').on('change', function() {
+            updateSelectedTags();
+            updatePlaceholder();
+        });
+
+        // Remover tag
+        $selectedTags.on('click', '.remove-tag', function() {
+            var text = $(this).siblings('span').text();
+            // Desmarcar el checkbox correspondiente
+            $('.dropdown-option').each(function() {
+                if ($(this).find('.option-text').text() === text) {
+                    $(this).find('input[type="checkbox"]').prop('checked', false);
+                }
+            });
+            updateSelectedTags();
+            updatePlaceholder();
+        });
+
+        function toggleDropdown() {
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        }
+
+        function openDropdown() {
+            isOpen = true;
+            $dropdownHeader.addClass('active');
+            $dropdownContent.addClass('show');
+            $searchInput.focus();
+        }
+
+        function closeDropdown() {
+            isOpen = false;
+            $dropdownHeader.removeClass('active');
+            $dropdownContent.removeClass('show');
+            $searchInput.val('');
+            $('.dropdown-option').show();
+        }
+
+        function updateSelectedTags() {
+            $selectedTags.empty();
+            $('.dropdown-option input[type="checkbox"]:checked').each(function() {
+                var text = $(this).siblings('.option-text').text();
+                var tag = $('<div class="provider-tag">' +
+                           '<span>' + text + '</span>' +
+                           '<span class="remove-tag">×</span>' +
+                           '</div>');
+                $selectedTags.append(tag);
+            });
+        }
+
+        function updatePlaceholder() {
+            var selectedCount = $('.dropdown-option input[type="checkbox"]:checked').length;
+            if (selectedCount === 0) {
+                $placeholder.text('Seleccionar proveedores...').removeClass('has-selection');
+            } else if (selectedCount === 1) {
+                var selectedText = $('.dropdown-option input[type="checkbox"]:checked').first().siblings('.option-text').text();
+                $placeholder.text(selectedText).addClass('has-selection');
+            } else {
+                $placeholder.text(selectedCount + ' proveedores seleccionados').addClass('has-selection');
+            }
+        }
+
+        // Inicializar tags y placeholder para elementos ya seleccionados
+        updateSelectedTags();
+        updatePlaceholder();
+    }
+});
+</script>
+
+{% endblock %}

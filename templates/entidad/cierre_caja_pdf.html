@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cierre de Caja</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #333;
+            margin: 0;
+            padding: 10px;
+            line-height: 1.2;
+        }
+        
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+        
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 11px;
+        }
+        
+        .caja-numero {
+            background-color: #333;
+            color: white;
+            padding: 5px 12px;
+            font-weight: bold;
+        }
+        
+        /* Company */
+        .company {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 11px;
+        }
+        
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        
+        /* Summary table */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        
+        .summary-table th {
+            background-color: #333;
+            color: white;
+            padding: 8px;
+            font-size: 11px;
+            text-align: left;
+        }
+        
+        .summary-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 11px;
+        }
+        
+        .summary-table td:last-child {
+            text-align: right;
+            font-weight: bold;
+        }
+        
+        .summary-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .total-row {
+            background-color: #333;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .total-row td {
+            border: none;
+            padding: 15px 12px;
+        }
+        
+        /* Signatures */
+        .signatures {
+            display: flex;
+            gap: 50px;
+            margin-top: 50px;
+            justify-content: center;
+        }
+        
+        .signature {
+            text-align: center;
+            font-size: 12px;
+            width: 200px;
+        }
+        
+        .signature-line {
+            border-bottom: 2px solid #333;
+            height: 40px;
+            margin-bottom: 8px;
+        }
+        
+        .signature-label {
+            font-weight: bold;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>CIERRE DE CAJA</h1>
+            <div class="header-info">
+                <div class="caja-numero">Caja N° {{ caja.id|stringformat:"06d" }}</div>
+                <div><strong>Fecha de Cierre:</strong> {{ fecha_cierre|date:"d/m/Y H:i" }}</div>
+            </div>
+        </div>
+
+        <!-- Company -->
+        <div class="company">
+            <div class="company-name">{{ caja.sucursal.nombre }}</div>
+            <div>Sin asignar 123, Ciudad | Tel: +54 000 000 000</div>
+            <div style="margin-top: 10px;">
+                <strong>Empleado:</strong> 
+                {{ empleado.first_name|default:"Sin nombre" }} {{ empleado.last_name|default:"Sin apellido" }} ({{ empleado.username }})
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Monto Inicial</td>
+                    <td>${{ caja.monto_inicial|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>Total Ingresado</td>
+                    <td>+${{ caja.total_ingresado|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td>Total Egresado</td>
+                    <td>-${{ caja.total_egresado|floatformat:2 }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td><strong>SALDO TOTAL</strong></td>
+                    <td><strong>${{ caja.saldo_total|floatformat:2 }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Signatures -->
+        <div class="signatures">
+            <div class="signature">
+                <div class="signature-line"></div>
+                <div class="signature-label">Firma del Empleado</div>
+            </div>
+            
+            <div class="signature">
+                <div class="signature-line"></div>
+                <div class="signature-label">Firma del Supervisor</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

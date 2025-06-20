@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Sucursal</title>
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #1d4ed8 50%, #2563eb 75%, #3b82f6 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: auto;
+        }
+
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: rotate 25s linear infinite;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            bottom: 10%;
+            left: 10%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            25% { transform: translateY(-15px) translateX(10px); }
+            50% { transform: translateY(0px) translateX(-10px); }
+            75% { transform: translateY(15px) translateX(5px); }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .selection-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(30, 58, 138, 0.3);
+            padding: 40px 50px;
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.8s ease-out;
+            text-align: center;
+            overflow: visible;
+        }
+
+        .header-section {
+            margin-bottom: 30px;
+        }
+
+        .logo-container {
+            margin-bottom: 15px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #3b82f6, #60a5fa);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 30px;
+            color: white;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+            animation: pulse 3s infinite;
+        }
+
+        .main-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e40af;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        .decorative-line {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .selection-form {
+            width: 100%;
+        }
+
+        .sucursales-grid {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .sucursal-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 30px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: scaleIn 0.6s ease-out;
+            flex: 1;
+            min-width: 280px;
+            max-width: 350px;
+        }
+
+        .sucursal-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .sucursal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .sucursal-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .sucursal-card:hover {
+            transform: translateY(-8px);
+            border-color: #3b82f6;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+        }
+
+        .sucursal-card.selected {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.3);
+        }
+
+        .sucursal-card.selected::before {
+            transform: scaleX(1);
+        }
+
+        .sucursal-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #3b82f6, #2563eb);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .sucursal-card:hover .sucursal-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .sucursal-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+
+        .sucursal-description {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .selection-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 25px;
+            height: 25px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .sucursal-card.selected .selection-indicator {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .hidden-select {
+            display: none;
+        }
+
+        .submit-button {
+            width: 100%;
+            max-width: 300px;
+            padding: 18px 30px;
+            background: linear-gradient(45deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+            margin: 0 auto;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-button:disabled {
+            background: linear-gradient(45deg, #9ca3af, #6b7280);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .submit-button:not(:disabled):hover {
+            background: linear-gradient(45deg, #2563eb, #1d4ed8);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        .submit-button:not(:disabled):active {
+            transform: translateY(-1px);
+        }
+
+        .instruction-text {
+            color: #6b7280;
+            font-size: 15px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .selection-container {
+                padding: 25px 20px;
+                margin: 10px;
+                border-radius: 20px;
+                max-width: 100%;
+            }
+
+            .main-title {
+                font-size: 24px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+            }
+
+            .sucursales-grid {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .sucursal-card {
+                padding: 25px 20px;
+                min-width: auto;
+                max-width: none;
+            }
+
+            .sucursal-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+
+            .sucursal-name {
+                font-size: 18px;
+            }
+
+            .submit-button {
+                font-size: 16px;
+                padding: 16px 25px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+                padding-top: 30px;
+            }
+
+            .selection-container {
+                padding: 20px 15px;
+            }
+
+            .main-title {
+                font-size: 22px;
+            }
+
+            .logo-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 25px;
+            }
+
+            .instruction-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="selection-container">
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <div class="header-section">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h1 class="main-title">La Guarida de Timón</h1>
+                <p class="subtitle">Sistema de Gestión</p>
+            </div>
+            <div class="decorative-line"></div>
+        </div>
+
+        <p class="instruction-text">
+            <i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #3b82f6;"></i>
+            Selecciona la sucursal desde la cual deseas trabajar
+        </p>
+
+        <form method="post" class="selection-form" id="sucursalForm">
+            {% csrf_token %}
+            
+            <!-- Select oculto para mantener la funcionalidad -->
+            <select name="sucursal" required class="hidden-select" id="hiddenSelect">
+                <option value="">Seleccione una sucursal</option>
+                {% for s in sucursales %}
+                    <option value="{{ s.id }}">{{ s.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Grid visual de sucursales -->
+            <div class="sucursales-grid" id="sucursalesGrid">
+                {% for s in sucursales %}
+                <div class="sucursal-card" data-sucursal-id="{{ s.id }}" data-sucursal-name="{{ s.nombre }}">
+                    <div class="selection-indicator">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="sucursal-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <h3 class="sucursal-name">{{ s.nombre }}</h3>
+                    <p class="sucursal-description">
+                        {% if forloop.first %}
+                            Sucursal principal
+                        {% else %}
+                            Sucursal secundaria
+                        {% endif %}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="submit-button" id="submitButton" disabled>
+                <i class="fas fa-arrow-right" style="margin-right: 10px;"></i>
+                Ingresar a Sucursal
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sucursalCards = document.querySelectorAll('.sucursal-card');
+            const hiddenSelect = document.getElementById('hiddenSelect');
+            const submitButton = document.getElementById('submitButton');
+            const form = document.getElementById('sucursalForm');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            // Manejar selección de sucursal
+            sucursalCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remover selección previa
+                    sucursalCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // Seleccionar card actual
+                    this.classList.add('selected');
+                    
+                    // Actualizar select oculto
+                    const sucursalId = this.dataset.sucursalId;
+                    hiddenSelect.value = sucursalId;
+                    
+                    // Habilitar botón
+                    submitButton.disabled = false;
+                    submitButton.textContent = `Ingresar a ${this.dataset.sucursalName}`;
+                    
+                    // Efecto de pulso en el botón
+                    submitButton.style.animation = 'pulse 0.5s ease-out';
+                    setTimeout(() => {
+                        submitButton.style.animation = '';
+                    }, 500);
+                });
+
+                // Efecto hover mejorado
+                card.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('selected')) {
+                        this.style.transform = 'translateY(-5px) scale(1.02)';
+                    }
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('selected')) {
+                        this.style.transform = '';
+                    }
+                });
+            });
+
+            // Manejar envío del formulario
+            form.addEventListener('submit', function(e) {
+                if (!hiddenSelect.value) {
+                    e.preventDefault();
+                    alert('Por favor selecciona una sucursal');
+                    return;
+                }
+
+                // Mostrar loading
+                loadingOverlay.style.display = 'flex';
+                submitButton.disabled = true;
+
+                // Añadir un pequeño delay para mejor UX
+                setTimeout(() => {
+                    // El formulario se enviará normalmente
+                }, 500);
+            });
+
+            // Efecto de teclado para accesibilidad
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && document.activeElement.classList.contains('sucursal-card')) {
+                    document.activeElement.click();
+                }
+            });
+
+            // Hacer las cards focusables para accesibilidad
+            sucursalCards.forEach((card, index) => {
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', `Seleccionar ${card.dataset.sucursalName}`);
+            });
+
+            // Animación de entrada escalonada
+            sucursalCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+
+        // Efecto ripple para las cards
+        document.querySelectorAll('.sucursal-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                let ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(59, 130, 246, 0.3)';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.animation = 'ripple 0.6s linear';
+                ripple.style.left = (e.clientX - e.target.getBoundingClientRect().left) + 'px';
+                ripple.style.top = (e.clientY - e.target.getBoundingClientRect().top) + 'px';
+                ripple.style.width = ripple.style.height = '20px';
+                
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // CSS para la animación ripple
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

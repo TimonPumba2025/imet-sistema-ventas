@@ -1,0 +1,84 @@
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header text-white py-2" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 50%, #bd2130 100%);">
+            <h5 class="modal-title">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Confirmar Eliminación
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+            <div class="text-center mb-4">
+                <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                <h4 class="text-dark mb-3">¿Estás seguro?</h4>
+                <p class="text-muted mb-4">
+                    Esta acción eliminará el producto <strong>"{{ objeto.nombre }}"</strong> del sistema.
+                    {% if objeto.detalleventaxproducto_set.exists %}
+                        <br><small class="text-info">
+                            <i class="fas fa-info-circle"></i>
+                            Este producto tiene ventas asociadas, se marcará como inactivo.
+                        </small>
+                    {% else %}
+                        <br><small class="text-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Esta acción no se puede deshacer.
+                        </small>
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Información del producto -->
+            <div class="card border-light mb-3">
+                <div class="card-body p-3">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <strong>Nombre:</strong><br>
+                            <span class="text-muted">{{ objeto.nombre }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Marca:</strong><br>
+                            <span class="text-muted">{{ objeto.marca }}</span>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-sm-6">
+                            <strong>Categoría:</strong><br>
+                            <span class="text-muted">{{ objeto.categoria }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Stock actual:</strong><br>
+                            <span class="badge {% if objeto.cantidad <= 10 %}bg-danger{% elif objeto.cantidad <= 20 %}bg-warning{% else %}bg-success{% endif %}">
+                                {{ objeto.cantidad }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="eliminarProductoForm" action="{% url 'eliminar_producto' objeto.id %}" method="post">
+                {% csrf_token %}
+            </form>
+
+            <!-- Mostrar mensajes de error si los hay -->
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger" form="eliminarProductoForm">
+                <i class="fas fa-trash me-2"></i>Confirmar Eliminación
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+{% block title %}Generar Etiquetas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .etiqueta-container {
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .etiqueta-image {
+        max-width: 100%;
+        height: auto;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        background: white;
+        padding: 10px;
+        box-shadow: 0 4px 8px rgba(30, 58, 138, 0.1);
+    }
+    
+    .tab-buttons {
+        margin-bottom: 25px;
+    }
+    
+    .tab-button {
+        border: 2px solid #e2e8f0 !important;
+        border-radius: 8px;
+        margin-right: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .tab-button.active {
+        background: linear-gradient(45deg, #3b82f6, #2563eb) !important;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+    
+    .tab-button:hover:not(.active) {
+        background: rgba(59, 130, 246, 0.1) !important;
+        border-color: #3b82f6 !important;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    .btn-generar {
+        background: linear-gradient(45deg, #3b82f6, #2563eb) !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-generar:hover {
+        background: linear-gradient(45deg, #2563eb, #1d4ed8) !important;
+        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    .btn-print {
+        background: linear-gradient(45deg, #059669, #047857);
+        border: none;
+        box-shadow: 0 2px 4px rgba(5, 150, 105, 0.3);
+        margin-right: 10px;
+    }
+    
+    .btn-print:hover {
+        background: linear-gradient(45deg, #047857, #065f46);
+        box-shadow: 0 4px 8px rgba(5, 150, 105, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    .icon-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        .etiqueta-image, .etiqueta-image * {
+            visibility: visible;
+        }
+        .etiqueta-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="page-title">
+        <i class="fas fa-barcode me-2"></i>
+        Generar Código de Barras
+    </h1>
+    <p class="text-muted">Genera etiquetas con códigos de barras para tus productos</p>
+</div>
+{% if imagen_data_url %}
+    <!-- Mostrar etiqueta generada -->
+    <div class="content-section">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Etiqueta Generada Exitosamente
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="etiqueta-container">
+                            <img src="{{ imagen_data_url }}" 
+                                 alt="Etiqueta generada" 
+                                 id="etiqueta" 
+                                 class="etiqueta-image">
+                        </div>
+                        <div class="text-center mt-4">
+                            <button onclick="window.print()" class="btn btn-success btn-lg btn-print">
+                                <i class="fas fa-print me-2"></i>
+                                Imprimir Etiqueta
+                            </button>
+                            <button onclick="location.reload()" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                Generar Otra Etiqueta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <!-- Formularios para generar etiqueta -->
+    <div class="content-section">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Pestañas para elegir tipo de generación -->
+                <div class="tab-buttons">
+                    <button class="btn btn-outline-primary tab-button active" onclick="showTab('manual')">
+                        <i class="fas fa-keyboard me-2"></i>
+                        Datos Manuales
+                    </button>
+                    <button class="btn btn-outline-primary tab-button" onclick="showTab('producto')">
+                        <i class="fas fa-box me-2"></i>
+                        Producto Existente
+                    </button>
+                </div>
+                
+                <!-- Formulario para datos manuales -->
+                <div id="manual-tab" class="tab-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-edit me-2"></i>
+                                Ingreso Manual de Datos
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="tipo_generacion" value="manual">
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label icon-label">
+                                            <i class="fas fa-tag text-primary"></i>
+                                            Nombre del producto
+                                        </label>
+                                        <input type="text" name="nombre" class="form-control" required 
+                                               placeholder="Ej: Coca Cola 500ml">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label icon-label">
+                                            <i class="fas fa-barcode text-primary"></i>
+                                            Código
+                                        </label>
+                                        <input type="text" name="codigo" class="form-control" required 
+                                               placeholder="Ej: 123456789012">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label icon-label">
+                                            <i class="fas fa-dollar-sign text-primary"></i>
+                                            Precio
+                                        </label>
+                                        <input type="number" step="0.01" name="precio" class="form-control" required 
+                                               placeholder="Ej: 15.50">
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg btn-generar">
+                                        <i class="fas fa-magic me-2"></i>
+                                        Generar Etiqueta
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formulario para producto existente -->
+                <div id="producto-tab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-search me-2"></i>
+                                Seleccionar Producto Existente
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="tipo_generacion" value="producto_existente">
+                                
+                                <div class="mb-4">
+                                    <label class="form-label icon-label">
+                                        <i class="fas fa-list text-primary"></i>
+                                        Seleccionar Producto
+                                    </label>
+                                    <select name="producto_id" class="form-select" required>
+                                        <option value="">-- Seleccione un producto --</option>
+                                        {% for producto in productos %}
+                                            <option value="{{ producto.id }}">
+                                                {{ producto.nombre }}
+                                                {% if producto.marca %} - {{ producto.marca }}{% endif %}
+                                                | ${{ producto.precio }} 
+                                                | {{ producto.codigo }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Se mostrará: Nombre | Marca | Precio | Código
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg btn-generar">
+                                        <i class="fas fa-magic me-2"></i>
+                                        Generar Etiqueta
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+function showTab(tabName) {
+    // Ocultar todas las pestañas
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Desactivar todos los botones
+    const buttons = document.querySelectorAll('.tab-button');
+    buttons.forEach(button => button.classList.remove('active'));
+    
+    // Mostrar la pestaña seleccionada
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Activar el botón correspondiente
+    event.target.classList.add('active');
+}
+
+// Funciones adicionales para mejorar UX
+function toggleSidebar() {
+    // Esta función ya debe estar definida en base.html
+}
+
+function logout() {
+    if (confirm('¿Está seguro que desea cerrar sesión?')) {
+        window.location.href = '{% url "logout" %}';
+    }
+}</script>
+{% endblock %}

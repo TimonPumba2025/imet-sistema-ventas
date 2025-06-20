@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Seleccionar Categoría - IMET Sistema de Gestión{% endblock %}
+
+{% block extra_css %}
+<style>
+    .categoria-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .categoria-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border: 1px solid #cbd5e1;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
+        text-align: center;
+    }
+
+    .categoria-titulo {
+        color: #1e40af;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .categoria-titulo i {
+        color: #3b82f6;
+        font-size: 2rem;
+    }
+
+    .categoria-subtitle {
+        color: #6b7280;
+        font-size: 1.1rem;
+        margin-top: 10px;
+        font-weight: 400;
+    }
+
+    .categoria-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        padding: 20px 0;
+    }
+
+    .categoria-card {
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 15px;
+        padding: 25px;
+        text-decoration: none;
+        color: #374151;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-height: 220px;
+    }
+
+    .categoria-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #2563eb);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .categoria-card:hover {
+        transform: translateY(-5px);
+        border-color: #3b82f6;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+        text-decoration: none;
+        color: #1e40af;
+    }
+
+    .categoria-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .categoria-icono {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        position: relative;
+        font-size: 2.5rem;
+    }
+
+    .categoria-icono::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 12px;
+        padding: 2px;
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: xor;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .categoria-card:hover .categoria-icono::after {
+        opacity: 1;
+    }
+
+    .categoria-card:hover .categoria-icono {
+        transform: scale(1.1);
+    }
+
+    .categoria-card:hover .categoria-icono i {
+        transform: scale(1.2);
+    }
+
+    .categoria-icono i {
+        transition: all 0.3s ease;
+        z-index: 1;
+    }
+
+    .categoria-nombre {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .categoria-card:hover .categoria-nombre {
+        color: #1e40af;
+    }
+
+    .categoria-descripcion {
+        font-size: 0.9rem;
+        color: #6b7280;
+        line-height: 1.4;
+        margin-top: auto;
+    }
+
+    .categoria-arrow {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        color: #cbd5e1;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+    }
+
+    .categoria-card:hover .categoria-arrow {
+        color: #3b82f6;
+        transform: translateX(3px);
+    }
+
+    .no-categorias {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+    .no-categorias i {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .no-categorias h3 {
+        color: #374151;
+        margin-bottom: 10px;
+    }
+
+    .btn-volver {
+        background: linear-gradient(45deg, #6b7280, #4b5563);
+        border: none;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+        margin-bottom: 20px;
+    }
+
+    .btn-volver:hover {
+        background: linear-gradient(45deg, #4b5563, #374151);
+        box-shadow: 0 4px 8px rgba(107, 114, 128, 0.4);
+        text-decoration: none;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    /* Colores específicos para categorías comunes */
+    .categoria-icono.categoria-electronica { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #2563eb; }
+    .categoria-icono.categoria-ropa { background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); color: #be185d; }
+    .categoria-icono.categoria-hogar { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); color: #059669; }
+    .categoria-icono.categoria-alimentacion { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #d97706; }
+    .categoria-icono.categoria-belleza { background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); color: #7c3aed; }
+    .categoria-icono.categoria-deportes { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); color: #16a34a; }
+    .categoria-icono.categoria-automovil { background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%); color: #dc2626; }
+    .categoria-icono.categoria-libros { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); color: #0284c7; }
+    .categoria-icono.categoria-herramientas { background: linear-gradient(135deg, #f7fee7 0%, #ecfccb 100%); color: #65a30d; }
+    .categoria-icono.categoria-oficina { background: linear-gradient(135deg, #fafafa 0%, #f4f4f5 100%); color: #52525b; }
+    .categoria-icono.categoria-juguetes { background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); color: #ea580c; }
+    .categoria-icono.categoria-salud { background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); color: #0d9488; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .categoria-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .categoria-titulo {
+            font-size: 2rem;
+        }
+
+        .categoria-card {
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .categoria-icono {
+            width: 70px;
+            height: 70px;
+            font-size: 2.2rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .categoria-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .categoria-titulo {
+            font-size: 1.8rem;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .categoria-header {
+            padding: 20px;
+        }
+    }
+</style>
+
+<script>
+// Función para obtener el icono y clase CSS según el nombre de la categoría
+function getIconoCategoria(nombreCategoria) {
+    const nombre = nombreCategoria.toLowerCase();
+    
+    // Mapeo de categorías a iconos
+    const iconos = {
+        // Electrónicos y tecnología
+        'electronica': { icon: 'fas fa-microchip', class: 'categoria-electronica' },
+        'electronicos': { icon: 'fas fa-microchip', class: 'categoria-electronica' },
+        'tecnologia': { icon: 'fas fa-laptop', class: 'categoria-electronica' },
+        'computacion': { icon: 'fas fa-desktop', class: 'categoria-electronica' },
+        'telefonia': { icon: 'fas fa-mobile-alt', class: 'categoria-electronica' },
+        
+        // Ropa y moda
+        'ropa': { icon: 'fas fa-tshirt', class: 'categoria-ropa' },
+        'vestimenta': { icon: 'fas fa-tshirt', class: 'categoria-ropa' },
+        'moda': { icon: 'fas fa-tshirt', class: 'categoria-ropa' },
+        'calzado': { icon: 'fas fa-shoe-prints', class: 'categoria-ropa' },
+        'accesorios': { icon: 'fas fa-gem', class: 'categoria-ropa' },
+        
+        // Hogar y jardín
+        'hogar': { icon: 'fas fa-home', class: 'categoria-hogar' },
+        'casa': { icon: 'fas fa-home', class: 'categoria-hogar' },
+        'jardin': { icon: 'fas fa-seedling', class: 'categoria-hogar' },
+        'muebles': { icon: 'fas fa-couch', class: 'categoria-hogar' },
+        'decoracion': { icon: 'fas fa-palette', class: 'categoria-hogar' },
+        
+        // Alimentación
+        'alimentacion': { icon: 'fas fa-utensils', class: 'categoria-alimentacion' },
+        'comida': { icon: 'fas fa-utensils', class: 'categoria-alimentacion' },
+        'bebidas': { icon: 'fas fa-wine-glass', class: 'categoria-alimentacion' },
+        'supermercado': { icon: 'fas fa-shopping-basket', class: 'categoria-alimentacion' },
+        
+        // Belleza y cuidado personal
+        'belleza': { icon: 'fas fa-spa', class: 'categoria-belleza' },
+        'cosmeticos': { icon: 'fas fa-spa', class: 'categoria-belleza' },
+        'perfumes': { icon: 'fas fa-spray-can', class: 'categoria-belleza' },
+        'cuidado': { icon: 'fas fa-heart', class: 'categoria-belleza' },
+        
+        // Deportes
+        'deportes': { icon: 'fas fa-dumbbell', class: 'categoria-deportes' },
+        'fitness': { icon: 'fas fa-dumbbell', class: 'categoria-deportes' },
+        'ejercicio': { icon: 'fas fa-running', class: 'categoria-deportes' },
+        
+        // Automóvil
+        'automovil': { icon: 'fas fa-car', class: 'categoria-automovil' },
+        'auto': { icon: 'fas fa-car', class: 'categoria-automovil' },
+        'vehiculos': { icon: 'fas fa-car', class: 'categoria-automovil' },
+        'repuestos': { icon: 'fas fa-cog', class: 'categoria-automovil' },
+        
+        // Libros y educación
+        'libros': { icon: 'fas fa-book', class: 'categoria-libros' },
+        'educacion': { icon: 'fas fa-graduation-cap', class: 'categoria-libros' },
+        'papeleria': { icon: 'fas fa-pen', class: 'categoria-libros' },
+        
+        // Herramientas
+        'herramientas': { icon: 'fas fa-hammer', class: 'categoria-herramientas' },
+        'ferreteria': { icon: 'fas fa-wrench', class: 'categoria-herramientas' },
+        'construccion': { icon: 'fas fa-hard-hat', class: 'categoria-herramientas' },
+        
+        // Oficina
+        'oficina': { icon: 'fas fa-briefcase', class: 'categoria-oficina' },
+        'escritorio': { icon: 'fas fa-desktop', class: 'categoria-oficina' },
+        
+        // Juguetes
+        'juguetes': { icon: 'fas fa-puzzle-piece', class: 'categoria-juguetes' },
+        'ninos': { icon: 'fas fa-child', class: 'categoria-juguetes' },
+        'infantil': { icon: 'fas fa-baby', class: 'categoria-juguetes' },
+        
+        // Salud
+        'salud': { icon: 'fas fa-heartbeat', class: 'categoria-salud' },
+        'medicina': { icon: 'fas fa-pills', class: 'categoria-salud' },
+        'farmacia': { icon: 'fas fa-prescription-bottle', class: 'categoria-salud' },
+    };
+    
+    // Buscar coincidencias parciales
+    for (let key in iconos) {
+        if (nombre.includes(key)) {
+            return iconos[key];
+        }
+    }
+    
+    // Icono por defecto
+    return { icon: 'fas fa-cube', class: 'categoria-electronica' };
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="categoria-container">
+    <!-- Botón de volver -->
+    <a href="{% url 'productos' %}" class="btn-volver">
+        <i class="fas fa-arrow-left"></i>
+        Volver a Productos
+    </a>
+
+    <!-- Header de la página -->
+    <div class="categoria-header">
+        <h1 class="categoria-titulo">
+            <i class="fas fa-th-large"></i>
+            Seleccionar Categoría
+        </h1>
+        <p class="categoria-subtitle">
+            Elige una categoría para crear un nuevo producto
+        </p>
+    </div>
+
+    <!-- Grid de categorías -->
+    {% if categorias %}
+        <div class="categoria-grid">
+            {% for cat in categorias %}
+                <a href="{% url 'nuevo_producto_categoria' cat.id %}" class="categoria-card">
+                    <div class="categoria-icono" id="icono-{{ forloop.counter }}">
+                        <!-- El icono se asignará dinámicamente con JavaScript -->
+                    </div>
+                    <div class="categoria-nombre">{{ cat.nombre }}</div>
+                    {% if cat.descripcion %}
+                        <div class="categoria-descripcion">{{ cat.descripcion|truncatewords:8 }}</div>
+                    {% endif %}
+                    <i class="fas fa-arrow-right categoria-arrow"></i>
+                </a>
+                
+                <!-- Script para asignar el icono específico a esta categoría -->
+                <script>
+                    (function() {
+                        const iconoData = getIconoCategoria('{{ cat.nombre|escapejs }}');
+                        const iconoElement = document.getElementById('icono-{{ forloop.counter }}');
+                        if (iconoElement) {
+                            iconoElement.innerHTML = '<i class="' + iconoData.icon + '"></i>';
+                            iconoElement.className += ' ' + iconoData.class;
+                        }
+                    })();
+                </script>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-categorias">
+            <i class="fas fa-th-large"></i>
+            <h3>No hay categorías disponibles</h3>
+            <p>No se encontraron categorías para mostrar. Contacta al administrador para crear nuevas categorías.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,1197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Inicio - {{ sucursal.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(30, 58, 138, 0.15);
+    }
+    
+    .kpi-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        margin-bottom: 15px;
+    }
+    
+    .kpi-value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #1e40af;
+        margin-bottom: 5px;
+    }
+    
+    .kpi-label {
+        color: #6b7280;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    
+    .kpi-change {
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    /* Responsive para tarjetas KPI */
+    @media (min-width: 1200px) {
+        .kpi-value {
+            font-size: 2.2rem;
+        }
+        .kpi-label {
+            font-size: 0.9rem;
+        }
+        .kpi-change {
+            font-size: 0.85rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .kpi-value {
+            font-size: 1.5rem;
+        }
+        .kpi-label {
+            font-size: 0.8rem;
+        }
+        .kpi-change {
+            font-size: 0.7rem;
+        }
+        .periodo-column {
+            display: none;
+        }
+        .tabla-empleados th:nth-child(n+5),
+        .tabla-empleados td:nth-child(n+5) {
+            display: none;
+        }
+    }
+    
+    .kpi-change.positive {
+        color: #059669;
+    }
+    
+    .kpi-change.negative {
+        color: #dc2626;
+    }
+    
+    .chart-container {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
+        margin-top: 25px;
+    }
+    
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        color: #6b7280;
+    }
+    
+    .quick-stats {
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        color: white;
+    }
+    
+    /* Estilos específicos para cada sucursal */
+    .quick-stats.timon-pumba {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+    
+    .quick-stats.la-placita {
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    }
+    
+    /* Si no se especifica sucursal, usar el azul por defecto */
+    .quick-stats.default {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .sucursal-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 10px;
+    }
+    
+    .sucursal-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    
+    .sucursal-icon.timon-pumba {
+        background: linear-gradient(45deg, #f97316, #ea580c);
+    }
+    
+    .sucursal-icon.la-placita {
+        background: linear-gradient(45deg, #16a34a, #15803d);
+    }
+    
+    .sucursal-icon.default {
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+    }
+
+    /* Estilos para la tabla de empleados */
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: #f8fafc;
+        transition: all 0.3s ease;
+    }
+
+    .ranking-item:hover {
+        background: #f1f5f9;
+        transform: translateY(-1px);
+    }
+
+    .ranking-position {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #3b82f6;
+        margin-right: 15px;
+        min-width: 30px;
+    }
+
+    .ranking-position.first {
+        color: #f59e0b;
+    }
+
+    .ranking-position.second {
+        color: #6b7280;
+    }
+
+    .ranking-position.third {
+        color: #cd7c2f;
+    }
+
+    .ranking-info {
+        flex: 1;
+    }
+
+    .ranking-name {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 2px;
+    }
+
+    .ranking-stats {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .periodo-column {
+        background: #f8fafc !important;
+        border-left: 2px solid #e2e8f0 !important;
+    }
+
+    .empleado-fila:hover {
+        background-color: #f8fafc !important;
+    }
+
+    .valor-destacado {
+        font-weight: 600;
+        color: #059669;
+    }
+
+    .sin-ventas {
+        color: #9ca3af;
+        font-style: italic;
+    }
+
+    /* ESTILOS PARA USUARIOS SIN PERMISOS */
+.welcome-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border: 1px solid #cbd5e1;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 25px rgba(30, 58, 138, 0.1);
+    text-align: center;
+}
+
+.company-logo {
+    width: 120px;
+    height: 120px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: white;
+    margin: 0 auto 25px;
+    box-shadow: 0 8px 32px rgba(30, 58, 138, 0.3);
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 8px 32px rgba(30, 58, 138, 0.3);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 12px 40px rgba(30, 58, 138, 0.5);
+        transform: scale(1.02);
+    }
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #1e40af;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(30, 64, 175, 0.1);
+}
+
+.welcome-subtitle {
+    font-size: 1.2rem;
+    color: #6b7280;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.welcome-description {
+    color: #374151;
+    line-height: 1.8;
+    font-size: 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.feature-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(30, 58, 138, 0.15);
+    border-color: #3b82f6;
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    margin: 0 auto 20px;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.feature-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1e40af;
+    margin-bottom: 10px;
+}
+
+.feature-description {
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.user-info-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
+    margin-bottom: 25px;
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, #3b82f6, #2563eb);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+    margin-right: 20px;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.user-details h3 {
+    color: #1e40af;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.user-details p {
+    color: #6b7280;
+    margin-bottom: 5px;
+}
+
+@media (max-width: 768px) {
+    .welcome-title {
+        font-size: 2rem;
+    }
+    
+    .welcome-subtitle {
+        font-size: 1rem;
+    }
+    
+    .company-logo {
+        width: 100px;
+        height: 100px;
+        font-size: 40px;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="sucursal-header">
+        <div class="sucursal-icon {% if 'timon' in sucursal.nombre|lower %}timon-pumba{% elif 'placita' in sucursal.nombre|lower %}la-placita{% else %}default{% endif %}">
+            {% if 'timon' in sucursal.nombre|lower %}
+                <i class="fas fa-paw"></i>
+            {% elif 'placita' in sucursal.nombre|lower %}
+                <i class="fas fa-leaf"></i>
+            {% else %}
+                <i class="fas fa-store"></i>
+            {% endif %}
+        </div>
+        <div>
+            <h1 class="page-title">SUCURSAL - {{ sucursal.nombre|upper }}</h1>
+            {% if perms.auth.add_user %}
+            <p>Resumen ejecutivo del sistema de gestión</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% if perms.auth.add_user %}
+<!-- Estadísticas rápidas -->
+<div class="quick-stats {% if 'timon' in sucursal.nombre|lower %}timon-pumba{% elif 'placita' in sucursal.nombre|lower %}la-placita{% else %}default{% endif %}">
+    <div class="row">
+        <div class="col-md-3 col-6">
+            <div class="stat-item">
+                <span class="stat-number">{{ ventas_mes }}</span>
+                <span class="stat-label">Ventas este mes</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-item">
+                <span class="stat-number">{{ total_productos }}</span>
+                <span class="stat-label">Productos activos</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-item">
+                <span class="stat-number">{{ total_clientes }}</span>
+                <span class="stat-label">Clientes registrados</span>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-item">
+                <span class="stat-number">
+                    {% if caja_activa %}
+                        <i class="fas fa-check-circle"></i>
+                    {% else %}
+                        <i class="fas fa-times-circle"></i>
+                    {% endif %}
+                </span>
+                <span class="stat-label">Estado de caja</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPIs Principales -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: linear-gradient(45deg, #059669, #10b981);">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="kpi-value" id="ingresos-valor">$0</div>
+            <div class="kpi-label">Total Ingresos Anuales</div>
+            <div class="kpi-change" id="ingresos-cambio">
+                <span>Cargando...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: linear-gradient(45deg, #3b82f6, #2563eb);">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="kpi-value" id="promedio-valor">$0</div>
+            <div class="kpi-label">Promedio de Venta</div>
+            <div class="kpi-change" id="promedio-cambio">
+                <span>Cargando...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: linear-gradient(45deg, #f59e0b, #d97706);">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="kpi-value" id="ventas-valor">0</div>
+            <div class="kpi-label">Total de Ventas</div>
+            <div class="kpi-change" id="ventas-cambio">
+                <span>Cargando...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: linear-gradient(45deg, #8b5cf6, #7c3aed);">
+                <i class="fas fa-box"></i>
+            </div>
+            <div class="kpi-value" id="productos-valor">0</div>
+            <div class="kpi-label">Productos Vendidos</div>
+            <div class="kpi-change" id="productos-cambio">
+                <span>Cargando...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico de evolución de ventas -->
+<div class="chart-container">
+    <h3 class="mb-4">Evolución de Ventas - Últimos 12 Meses</h3>
+    <div style="position: relative; height: 400px;">
+        <canvas id="ventasChart"></canvas>
+        <div id="chart-loading" class="loading-spinner">
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-2" role="status"></div>
+                <div>Cargando datos del gráfico...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sección de Ventas por Empleado -->
+<div class="row mt-4">
+    <!-- Tabla de comparación -->
+    <div class="col-lg-8 col-12">
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Ventas por Empleado</h3>
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="periodo-empleados" id="periodo-diario" value="diario">
+                    <label class="btn btn-outline-primary btn-sm" for="periodo-diario">Últimos 7 días</label>
+                    
+                    <input type="radio" class="btn-check" name="periodo-empleados" id="periodo-semanal" value="semanal" checked>
+                    <label class="btn btn-outline-primary btn-sm" for="periodo-semanal">Últimas 8 semanas</label>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover tabla-empleados" id="tabla-empleados">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Empleado</th>
+                            <th class="text-end">Total General</th>
+                            <th class="text-end">Cant. Ventas</th>
+                            <th class="text-end">Promedio</th>
+                            <!-- Los períodos se agregarán dinámicamente -->
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-empleados-body">
+                        <tr>
+                            <td colspan="4" class="text-center">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div>Cargando datos...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Información adicional -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i>
+                        Los datos se actualizan en tiempo real. Haga clic en los períodos para cambiar la vista.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ranking lateral -->
+    <div class="col-lg-4 col-12">
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>Top Empleados</h4>
+                <select class="form-select form-select-sm" id="metrica-ranking" style="width: auto;">
+                    <option value="total">Por Total ($)</option>
+                    <option value="cantidad">Por Cantidad</option>
+                    <option value="promedio">Por Promedio</option>
+                </select>
+            </div>
+            
+            <div id="ranking-empleados">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <div>Cargando ranking...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos rápidos -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="content-section">
+            <h3>Accesos Rápidos</h3>
+            <div class="row">
+                <div class="col-md-3 col-6 mb-3">
+                    <a href="{% url 'crear_venta' %}" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Nueva Venta
+                    </a>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <a href="{% url 'productos' %}" class="btn btn-info btn-lg w-100">
+                        <i class="fas fa-boxes me-2"></i>
+                        Inventario
+                    </a>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <a href="{% url 'caja' %}" class="btn btn-warning btn-lg w-100">
+                        <i class="fas fa-cash-register me-2"></i>
+                        Gestión Caja
+                    </a>
+                </div>
+                <div class="col-md-3 col-6 mb-3">
+                    <a href="{% url 'clientes' %}" class="btn btn-success btn-lg w-100">
+                        <i class="fas fa-users me-2"></i>
+                        Clientes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- CONTENIDO PARA USUARIOS SIN PERMISOS ADMINISTRATIVOS -->
+
+<div class="row">
+    <div class="col-lg-8 col-12">
+        <!-- Sección de Bienvenida -->
+        <div class="welcome-section">
+            <div class="company-logo">
+                <i class="fas fa-store"></i>
+            </div>
+            <h2 class="welcome-title">¡Bienvenido a GDT!</h2>
+            <p class="welcome-subtitle">Sistema de Gestión Integral</p>
+            <p class="welcome-description">
+                Estás conectado al sistema de gestión de ventas más completo. 
+                Desde aquí puedes realizar ventas, gestionar clientes y consultar el inventario 
+                de manera eficiente y segura. Todo está diseñado para facilitarte el trabajo diario.
+            </p>
+        </div>
+
+        <!-- Funcionalidades Disponibles -->
+        <div class="content-section">
+            <h3 class="text-center mb-4">¿Qué puedes hacer?</h3>
+            <div class="features-grid">
+                <div class="feature-card" onclick="window.location.href='{% url "crear_venta" %}'">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #059669, #10b981);">
+                        <i class="fas fa-cash-register"></i>
+                    </div>
+                    <h4 class="feature-title">Realizar Ventas</h4>
+                    <p class="feature-description">
+                        Procesa ventas de manera rápida y eficiente. 
+                        Busca productos, calcula totales y genera comprobantes.
+                    </p>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='{% url "clientes" %}'">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #3b82f6, #2563eb);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4 class="feature-title">Gestionar Clientes</h4>
+                    <p class="feature-description">
+                        Consulta y administra la información de los clientes. 
+                        Mantén actualizada la base de datos.
+                    </p>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='{% url "ventasactual" %}'">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #f59e0b, #d97706);">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h4 class="feature-title">Historial de Ventas</h4>
+                    <p class="feature-description">
+                        Revisa las ventas realizadas, consulta detalles 
+                        y genera reportes cuando sea necesario.
+                    </p>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='{% url "caja" %}'">
+                    <div class="feature-icon" style="background: linear-gradient(45deg, #8b5cf6, #7c3aed);">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h4 class="feature-title">Control de Caja</h4>
+                    <p class="feature-description">
+                        Consulta el estado de la caja, realiza arqueos 
+                        y mantén el control de los movimientos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-12">
+        <!-- Información del Usuario -->
+        <div class="user-info-card">
+            <div class="d-flex align-items-center">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <h3>{{ user.get_full_name|default:user.username }}</h3>
+                    <p><i class="fas fa-user-tag"></i> Usuario: {{ user.username }}</p>
+                    {% if user.email %}
+                    <p><i class="fas fa-envelope"></i> {{ user.email }}</p>
+                    {% endif %}
+                    <p><i class="fas fa-map-marker-alt"></i> {{ sucursal.nombre }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accesos Rápidos Compactos -->
+        <div class="content-section">
+            <h4 class="text-center mb-3">Accesos Rápidos</h4>
+            <div class="d-grid gap-2">
+                <a href="{% url 'crear_venta' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    Nueva Venta
+                </a>
+                <a href="{% url 'caja' %}" class="btn btn-warning btn-lg">
+                    <i class="fas fa-cash-register me-2"></i>
+                    Gestión Caja
+                </a>
+                <a href="{% url 'clientes' %}" class="btn btn-success btn-lg">
+                    <i class="fas fa-users me-2"></i>
+                    Clientes
+                </a>
+                <a href="{% url 'ventasactual' %}" class="btn btn-info btn-lg">
+                    <i class="fas fa-history me-2"></i>
+                    Historial Ventas
+                </a>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="content-section">
+            <h4 class="text-center mb-3">
+                <i class="fas fa-info-circle text-primary"></i>
+                Información del Sistema
+            </h4>
+            <div class="row text-center">
+                <div class="col-6 mb-3">
+                    <div class="feature-icon mx-auto mb-2" style="width: 40px; height: 40px; background: linear-gradient(45deg, #16a34a, #15803d); font-size: 16px;">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <small class="text-muted">Sistema<br>Seguro</small>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="feature-icon mx-auto mb-2" style="width: 40px; height: 40px; background: linear-gradient(45deg, #dc2626, #b91c1c); font-size: 16px;">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <small class="text-muted">Tiempo<br>Real</small>
+                </div>
+                <div class="col-6">
+                    <div class="feature-icon mx-auto mb-2" style="width: 40px; height: 40px; background: linear-gradient(45deg, #7c3aed, #6d28d9); font-size: 16px;">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <small class="text-muted">En la<br>Nube</small>
+                </div>
+                <div class="col-6">
+                    <div class="feature-icon mx-auto mb-2" style="width: 40px; height: 40px; background: linear-gradient(45deg, #ea580c, #c2410c); font-size: 16px;">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <small class="text-muted">Responsive<br>Design</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+// Variables globales
+let datosEmpleadosActuales = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar KPIs
+    cargarKPIs();
+    
+    // Cargar gráfico
+    cargarGraficoVentas();
+    
+    // Inicializar funcionalidad de empleados
+    inicializarEmpleados();
+});
+
+function inicializarEmpleados() {
+    // Event listeners para los botones de período
+    document.querySelectorAll('input[name="periodo-empleados"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                cargarDatosEmpleados(this.value);
+            }
+        });
+    });
+    
+    // Event listener para el selector de métrica del ranking
+    document.getElementById('metrica-ranking').addEventListener('change', function() {
+        cargarRankingEmpleados(this.value);
+    });
+    
+    // Cargar datos iniciales
+    cargarDatosEmpleados('semanal');
+    cargarRankingEmpleados('total');
+}
+
+function cargarKPIs() {
+    fetch('/api/kpis/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('KPIs recibidos:', data);
+            
+            // Actualizar ingresos anuales
+            document.getElementById('ingresos-valor').textContent = formatearMoneda(data.ingresos_anuales.valor);
+            actualizarCambio('ingresos-cambio', data.ingresos_anuales.cambio);
+            
+            // Actualizar promedio de venta
+            document.getElementById('promedio-valor').textContent = formatearMoneda(data.promedio_venta.valor);
+            actualizarCambio('promedio-cambio', data.promedio_venta.cambio);
+            
+            // Actualizar total de ventas
+            document.getElementById('ventas-valor').textContent = formatearNumero(data.total_ventas.valor);
+            actualizarCambio('ventas-cambio', data.total_ventas.cambio);
+            
+            // Actualizar productos vendidos
+            document.getElementById('productos-valor').textContent = formatearNumero(data.productos_vendidos.valor);
+            actualizarCambio('productos-cambio', data.productos_vendidos.cambio);
+        })
+        .catch(error => {
+            console.error('Error cargando KPIs:', error);
+            // Mostrar error en las tarjetas
+            document.getElementById('ingresos-cambio').innerHTML = '<span class="text-danger">Error cargando datos</span>';
+            document.getElementById('promedio-cambio').innerHTML = '<span class="text-danger">Error cargando datos</span>';
+            document.getElementById('ventas-cambio').innerHTML = '<span class="text-danger">Error cargando datos</span>';
+            document.getElementById('productos-cambio').innerHTML = '<span class="text-danger">Error cargando datos</span>';
+        });
+}
+
+function actualizarCambio(elementId, cambio) {
+    const elemento = document.getElementById(elementId);
+    const icono = cambio >= 0 ? '↗' : '↘';
+    const clase = cambio >= 0 ? 'positive' : 'negative';
+    const texto = cambio >= 0 ? 'Incremento' : 'Disminución';
+    
+    elemento.className = `kpi-change ${clase}`;
+    elemento.innerHTML = `
+        <span>${icono}</span>
+        <span>${Math.abs(cambio)}% ${texto} vs año anterior</span>
+    `;
+}
+
+function cargarGraficoVentas() {
+    fetch('/api/grafico-mensual/')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos del gráfico recibidos:', data);
+            document.getElementById('chart-loading').style.display = 'none';
+            
+            const ctx = document.getElementById('ventasChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: false
+                        },
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Ventas ($)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Ventas'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Período'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error cargando gráfico:', error);
+            document.getElementById('chart-loading').innerHTML = 
+                '<div class="text-center text-danger">Error cargando el gráfico: ' + error.message + '</div>';
+        });
+}
+
+function cargarDatosEmpleados(periodo) {
+    // Mostrar loading
+    document.getElementById('tabla-empleados-body').innerHTML = `
+        <tr>
+            <td colspan="10" class="text-center">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div>Cargando datos de ${periodo === 'diario' ? 'últimos 7 días' : 'últimas 8 semanas'}...</div>
+            </td>
+        </tr>
+    `;
+    
+    fetch(`/api/ventas-empleados/?periodo=${periodo}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos de empleados recibidos:', data);
+            datosEmpleadosActuales = data;
+            mostrarTablaEmpleados(data);
+        })
+        .catch(error => {
+            console.error('Error cargando datos de empleados:', error);
+            document.getElementById('tabla-empleados-body').innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center text-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error cargando datos: ${error.message}
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+function mostrarTablaEmpleados(data) {
+    const tabla = document.getElementById('tabla-empleados');
+    const thead = tabla.querySelector('thead tr');
+    const tbody = document.getElementById('tabla-empleados-body');
+    
+    // Limpiar y recrear el header
+    thead.innerHTML = `
+        <th>Empleado</th>
+        <th class="text-end">Total General</th>
+        <th class="text-end">Cant. Ventas</th>
+        <th class="text-end">Promedio</th>
+    `;
+    
+    // Agregar columnas de períodos
+    data.periodos_labels.forEach(periodo => {
+        const th = document.createElement('th');
+        th.className = 'text-end periodo-column';
+        th.textContent = periodo;
+        th.style.minWidth = '100px';
+        thead.appendChild(th);
+    });
+    
+    // Limpiar tbody
+    tbody.innerHTML = '';
+    
+    if (data.empleados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="${4 + data.periodos_labels.length}" class="text-center text-muted">
+                    <i class="fas fa-user-times"></i>
+                    No hay datos de ventas para el período seleccionado
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Generar filas de empleados
+    data.empleados.forEach((empleado, index) => {
+        const fila = document.createElement('tr');
+        fila.className = 'empleado-fila';
+        
+        // Determinar si es el empleado con mejores ventas
+        const esMejor = index === 0;
+        
+        fila.innerHTML = `
+            <td>
+                <div class="d-flex align-items-center">
+                    ${esMejor ? '<i class="fas fa-crown text-warning me-2"></i>' : ''}
+                    <div>
+                        <div class="fw-semibold">${empleado.empleado}</div>
+                        <small class="text-muted">@${empleado.username}</small>
+                    </div>
+                </div>
+            </td>
+            <td class="text-end">
+                <span class="valor-destacado">${formatearMoneda(empleado.total_general)}</span>
+            </td>
+            <td class="text-end">
+                <span class="badge bg-primary">${empleado.cantidad_general}</span>
+            </td>
+            <td class="text-end">
+                ${formatearMoneda(empleado.promedio_general)}
+            </td>
+        `;
+        
+        // Agregar celdas de períodos
+        empleado.periodos.forEach(periodo => {
+            const td = document.createElement('td');
+            td.className = 'text-end periodo-column';
+            
+            if (periodo.total > 0) {
+                td.innerHTML = `
+                    <div class="small">
+                        <div class="fw-semibold">${formatearMoneda(periodo.total)}</div>
+                        <div class="text-muted">${periodo.cantidad} ventas</div>
+                    </div>
+                `;
+            } else {
+                td.innerHTML = '<span class="sin-ventas">Sin ventas</span>';
+            }
+            
+            fila.appendChild(td);
+        });
+        
+        tbody.appendChild(fila);
+    });
+}
+
+function cargarRankingEmpleados(metrica) {
+    const container = document.getElementById('ranking-empleados');
+    
+    container.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div>Cargando ranking...</div>
+        </div>
+    `;
+    
+    fetch(`/api/ranking-empleados/?metrica=${metrica}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Ranking recibido:', data);
+            mostrarRanking(data, metrica);
+        })
+        .catch(error => {
+            console.error('Error cargando ranking:', error);
+            container.innerHTML = `
+                <div class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>Error cargando ranking</div>
+                </div>
+            `;
+        });
+}
+
+function mostrarRanking(data, metrica) {
+    const container = document.getElementById('ranking-empleados');
+    
+    if (data.ranking.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-user-times"></i>
+                <div>No hay datos disponibles</div>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    data.ranking.slice(0, 5).forEach((empleado, index) => {
+        const posicionClass = index === 0 ? 'first' : index === 1 ? 'second' : index === 2 ? 'third' : '';
+        
+        let valorPrincipal = '';
+        let detalle = '';
+        
+        switch(metrica) {
+            case 'cantidad':
+                valorPrincipal = `${empleado.cantidad_ventas} ventas`;
+                detalle = `Total: ${formatearMoneda(empleado.total_ventas)}`;
+                break;
+            case 'promedio':
+                valorPrincipal = formatearMoneda(empleado.promedio_venta);
+                detalle = `${empleado.cantidad_ventas} ventas`;
+                break;
+            default:
+                valorPrincipal = formatearMoneda(empleado.total_ventas);
+                detalle = `${empleado.cantidad_ventas} ventas`;
+                break;
+        }
+        
+        html += `
+            <div class="ranking-item">
+                <div class="ranking-position ${posicionClass}">
+                    ${empleado.posicion}°
+                </div>
+                <div class="ranking-info">
+                    <div class="ranking-name">${empleado.empleado}</div>
+                    <div class="ranking-stats">
+                        <div class="fw-semibold text-primary">${valorPrincipal}</div>
+                        <div>${detalle}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function formatearMoneda(valor) {
+    return new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(valor);
+}
+
+function formatearNumero(valor) {
+    return new Intl.NumberFormat('es-AR').format(valor);
+}
+</script>
+{% endblock %}

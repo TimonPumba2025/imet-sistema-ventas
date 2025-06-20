@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Acceso Denegado - Sistema de Gestión{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="page-title mb-2">
+                <i class="fas fa-shield-alt text-warning me-2"></i>
+                Acceso Denegado
+            </h1>
+            <p class="text-muted mb-0">No tienes permisos para acceder a este contenido</p>
+        </div>
+        <div class="text-end">
+            <i class="fas fa-exclamation-triangle fa-3x text-warning opacity-50"></i>
+        </div>
+    </div>
+</div>
+
+<div class="content-section">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center">
+                <!-- Icono principal -->
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-10 mb-3" 
+                         style="width: 120px; height: 120px;">
+                        <i class="fas fa-lock fa-3x text-warning"></i>
+                    </div>
+                </div>
+
+                <!-- Título y descripción -->
+                <h2 class="text-dark mb-3">Contenido No Disponible</h2>
+                <p class="text-muted mb-4 fs-5">
+                    Este contenido no está disponible en este momento. Por lo general, esto sucede porque:
+                </p>
+
+                <!-- Lista de posibles causas -->
+                <div class="text-start mb-4">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-users text-primary me-2"></i>
+                            El propietario solo compartió el contenido con un grupo reducido de personas
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-eye-slash text-primary me-2"></i>
+                            Se cambió quién puede ver este contenido
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-trash text-primary me-2"></i>
+                            El contenido fue eliminado o movido
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-user-shield text-primary me-2"></i>
+                            Tu usuario no tiene los permisos necesarios
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Acciones disponibles -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg me-md-2">
+                        <i class="fas fa-home me-2"></i>
+                        Volver al Inicio
+                    </a>
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Página Anterior
+                    </button>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Si crees que esto es un error, contacta al administrador del sistema.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sección adicional con información de contacto -->
+<div class="content-section bg-gradient" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+    <div class="row">
+        <div class="col-md-4 text-center mb-3">
+            <div class="p-3">
+                <i class="fas fa-question-circle fa-2x text-primary mb-3"></i>
+                <h5 class="text-dark">¿Necesitas Ayuda?</h5>
+                <p class="text-muted small">Revisa los permisos de tu usuario o contacta al administrador</p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center mb-3">
+            <div class="p-3">
+                <i class="fas fa-user-cog fa-2x text-primary mb-3"></i>
+                <h5 class="text-dark">Permisos</h5>
+                <p class="text-muted small">Tu cuenta: <strong>{{ user.username|upper }}</strong></p>
+            </div>
+        </div>
+        <div class="col-md-4 text-center mb-3">
+            <div class="p-3">
+                <i class="fas fa-clock fa-2x text-primary mb-3"></i>
+                <h5 class="text-dark">Intenta Más Tarde</h5>
+                <p class="text-muted small">Los permisos pueden cambiar con el tiempo</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

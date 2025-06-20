@@ -1,0 +1,177 @@
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header text-white py-2" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 50%, #bd2130 100%);">
+            <h5 class="modal-title">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Confirmar Eliminación
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4" style="background-color: #f8fafc;">
+            <div class="text-center mb-4">
+                <i class="fas fa-truck-loading fa-3x text-danger mb-3"></i>
+                <h4 class="text-dark mb-3">¿Estás seguro?</h4>
+                <p class="text-muted mb-4">
+                    Esta acción eliminará el proveedor <strong>"{{ objeto.nombre }}"</strong> del sistema.
+                    <br><small class="text-warning">
+                        <i class="fas fa-info-circle"></i>
+                        El proveedor se marcará como inactivo.
+                    </small>
+                </p>
+            </div>
+
+            <!-- Información del proveedor -->
+            <div class="card border-light mb-3">
+                <div class="card-body p-3">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="provider-info">
+                                <div class="provider-icon me-3">
+                                    <i class="fas fa-truck"></i>
+                                </div>
+                                <div>
+                                    <strong>Proveedor:</strong><br>
+                                    <span class="text-muted">{{ objeto.nombre }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="provider-info">
+                                <div class="provider-icon me-3">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div>
+                                    <strong>Teléfono:</strong><br>
+                                    <span class="text-muted">{{ objeto.telefono|default:"No especificado" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="eliminarProveedorForm" action="{% url 'eliminar_proveedor_producto' objeto.id %}" method="post">
+                {% csrf_token %}
+            </form>
+
+            <!-- Mostrar mensajes de error si los hay -->
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="modal-footer py-2" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+            <button type="button" class="btn btn-secondary btn-sm me-2" data-bs-dismiss="modal">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger btn-sm" form="eliminarProveedorForm">
+                <i class="fas fa-trash me-1"></i>Confirmar Eliminación
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .provider-info {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+    
+    .provider-icon {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(45deg, #f59e0b, #d97706);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+    
+    .modal-content {
+        border: none;
+        box-shadow: 0 10px 25px rgba(30, 58, 138, 0.15);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .modal-header {
+        border-bottom: none;
+    }
+    
+    .modal-footer {
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .btn-danger {
+        background: linear-gradient(45deg, #dc3545, #c82333) !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3) !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(45deg, #c82333, #bd2130) !important;
+        box-shadow: 0 3px 6px rgba(220, 53, 69, 0.4) !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(45deg, #6b7280, #4b5563) !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3) !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        transition: all 0.3s ease !important;
+        color: white !important;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(45deg, #4b5563, #374151) !important;
+        box-shadow: 0 3px 6px rgba(107, 114, 128, 0.4) !important;
+        transform: translateY(-1px) !important;
+        color: white !important;
+    }
+    
+    .card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.05);
+    }
+    
+    @media (max-width: 768px) {
+        .modal-body {
+            padding: 1rem !important;
+        }
+        
+        .provider-icon {
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+        }
+        
+        .provider-info {
+            padding: 6px;
+        }
+        
+        .btn-danger,
+        .btn-secondary {
+            font-size: 0.85rem !important;
+        }
+    }
+</style>

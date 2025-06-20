@@ -1,0 +1,260 @@
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header text-white py-2" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);">
+            <h5 class="modal-title mb-0">
+                <i class="fas fa-minus-circle me-2"></i>
+                Retirar Dinero
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <div class="modal-body p-3" style="background-color: #f8fafc;">
+            <form id="retirarDineroForm" action="{% url 'retirar_dinero' %}" method="post">
+                {% csrf_token %}
+                
+                <!-- Campo Tipo -->
+                <div class="form-group-custom mb-3">
+                    <label class="form-label-custom">
+                        <i class="fas fa-tags me-2"></i>
+                        {{ form.tipo.label }}
+                    </label>
+                    <div class="form-control-wrapper">
+                        {{ form.tipo }}
+                    </div>
+                </div>
+
+                <!-- Campo Cantidad -->
+                <div class="form-group-custom mb-3">
+                    <label class="form-label-custom">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        {{ form.cantidad.label }}
+                    </label>
+                    <div class="form-control-wrapper">
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.cantidad }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Campo Descripción -->
+                <div class="form-group-custom mb-2">
+                    <label class="form-label-custom">
+                        <i class="fas fa-comment-alt me-2"></i>
+                        {{ form.descripcion.label }}
+                    </label>
+                    <div class="form-control-wrapper">
+                        {{ form.descripcion }}
+                    </div>
+                </div>
+            </form>
+
+            <!-- Mostrar mensajes -->
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-danger mt-2">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Mostrar errores del formulario si los hay -->
+            {% if form.errors %}
+                <div class="alert alert-danger mt-2">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Corrije los errores:</strong>
+                    <ul class="mb-0 mt-1">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li><small>{{ error }}</small></li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="modal-footer py-2" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+            <button type="button" class="btn btn-secondary btn-sm me-2" data-bs-dismiss="modal">
+                <i class="fas fa-times me-1"></i>
+                Cancelar
+            </button>
+            <button type="submit" class="btn btn-danger btn-sm" form="retirarDineroForm">
+                <i class="fas fa-check me-1"></i>
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Grupos de formulario compactos */
+    .form-group-custom {
+        margin-bottom: 1rem;
+    }
+    
+    .form-label-custom {
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+        display: block;
+    }
+    
+    .form-control-wrapper {
+        position: relative;
+    }
+    
+    /* Estilos para campos del formulario */
+    .form-control-wrapper select,
+    .form-control-wrapper input,
+    .form-control-wrapper textarea {
+        background: #ffffff !important;
+        border: 2px solid #e2e8f0 !important;
+        color: #374151 !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
+        font-size: 0.9rem !important;
+        transition: all 0.3s ease !important;
+        width: 100% !important;
+    }
+    
+    .form-control-wrapper textarea {
+        resize: vertical !important;
+        min-height: 70px !important;
+        max-height: 100px !important;
+    }
+    
+    .form-control-wrapper select:focus,
+    .form-control-wrapper input:focus,
+    .form-control-wrapper textarea:focus {
+        background: #ffffff !important;
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 0.15rem rgba(239, 68, 68, 0.25) !important;
+        color: #374151 !important;
+        outline: none !important;
+    }
+    
+    /* Input group para cantidad - TEMA ROJO */
+    .input-group-text {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+        border: 2px solid #e2e8f0 !important;
+        border-right: none !important;
+        color: #ef4444 !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+        padding: 8px 12px !important;
+        border-radius: 6px 0 0 6px !important;
+    }
+    
+    .input-group .form-control {
+        border-left: none !important;
+        border-radius: 0 6px 6px 0 !important;
+    }
+    
+    .input-group:focus-within .input-group-text {
+        border-color: #ef4444 !important;
+        background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%) !important;
+    }
+    
+    /* Botón peligro para retirar */
+    .btn-danger {
+        background: linear-gradient(45deg, #ef4444, #dc2626) !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3) !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(45deg, #dc2626, #b91c1c) !important;
+        box-shadow: 0 3px 6px rgba(239, 68, 68, 0.4) !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(45deg, #6b7280, #4b5563) !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3) !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        transition: all 0.3s ease !important;
+        color: white !important;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(45deg, #4b5563, #374151) !important;
+        box-shadow: 0 3px 6px rgba(107, 114, 128, 0.4) !important;
+        transform: translateY(-1px) !important;
+        color: white !important;
+    }
+    
+    /* Modal compacto */
+    .modal-content {
+        border: none;
+        box-shadow: 0 8px 20px rgba(30, 58, 138, 0.15);
+        border-radius: 10px;
+        overflow: hidden;
+        animation: modalSlideIn 0.25s ease-out;
+    }
+    
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .modal-header {
+        border-bottom: none;
+    }
+    
+    .modal-footer {
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    /* Alert de errores/mensajes */
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #dc2626;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+    
+    .alert-danger ul {
+        padding-left: 1rem;
+        margin: 0;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .modal-body {
+            padding: 1rem !important;
+        }
+        
+        .form-control-wrapper select,
+        .form-control-wrapper input,
+        .form-control-wrapper textarea {
+            padding: 6px 10px !important;
+            font-size: 0.85rem !important;
+        }
+        
+        .input-group-text {
+            padding: 6px 10px !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .btn-danger,
+        .btn-secondary {
+            font-size: 0.85rem !important;
+        }
+    }
+</style>

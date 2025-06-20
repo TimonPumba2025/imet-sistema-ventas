@@ -1,0 +1,196 @@
+<div class="modal-dialog" role="document">
+    <div class="modal-content" style="border: none; box-shadow: 0 8px 20px rgba(30, 58, 138, 0.15); border-radius: 10px; overflow: hidden;">
+        <div class="modal-header text-white py-2" style="background: {% if tipo == 'Nuevo' %}linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%){% else %}linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%){% endif %}; border-bottom: none;">
+            <h5 class="modal-title">
+                {% if tipo == 'Nuevo' %}
+                    <i class="fas fa-plus-circle me-2"></i>
+                {% else %}
+                    <i class="fas fa-edit me-2"></i>
+                {% endif %}
+                {{ tipo }} Proveedor{{ dato|default:"" }}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <div class="modal-body p-3" style="background-color: #f8fafc;">
+            <form id="proveedorForm" action="{% if tipo == 'Nuevo' %}{% url 'nuevo_proveedor_producto' %}{% else %}{% url 'modificar_proveedor_producto' form.instance.id %}{% endif %}" method="post">
+                {% csrf_token %}
+                
+                <!-- Campo Nombre -->
+                <div class="mb-3">
+                    <label class="form-label" style="color: #374151; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; display: flex; align-items: center;">
+                        <i class="fas fa-truck me-2" style="color: #10b981; font-size: 1rem;"></i>
+                        {{ form.nombre.label }}
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="text" name="{{ form.nombre.name }}" 
+                               value="{% if form.nombre.value %}{{ form.nombre.value }}{% endif %}" 
+                               class="form-control input-moderno{% if form.nombre.errors %} is-invalid{% endif %}" 
+                               id="{{ form.nombre.id_for_label }}"
+                               placeholder="Ingrese el nombre del proveedor"
+                               style="background: #ffffff !important; 
+                                      border: 2px solid {% if form.nombre.errors %}#ef4444{% else %}#e2e8f0{% endif %} !important; 
+                                      color: #374151 !important; 
+                                      border-radius: 8px !important; 
+                                      padding: 12px 16px !important; 
+                                      font-size: 0.95rem !important; 
+                                      box-shadow: {% if form.nombre.errors %}0 0 0 3px rgba(239, 68, 68, 0.1){% else %}0 1px 3px rgba(0, 0, 0, 0.1){% endif %} !important; 
+                                      font-weight: 500 !important; 
+                                      transition: all 0.3s ease !important;">
+                        {% if form.nombre.errors %}
+                            <div class="mt-2">
+                                {% for error in form.nombre.errors %}
+                                    <small class="text-danger d-block" style="font-size: 0.8rem; font-weight: 500;">
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    </small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Campo Teléfono -->
+                <div class="mb-3">
+                    <label class="form-label" style="color: #374151; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; display: flex; align-items: center;">
+                        <i class="fas fa-phone me-2" style="color: #10b981; font-size: 1rem;"></i>
+                        {{ form.telefono.label }}
+                    </label>
+                    <div class="input-wrapper">
+                        <input type="text" name="{{ form.telefono.name }}" 
+                               value="{% if form.telefono.value %}{{ form.telefono.value }}{% endif %}" 
+                               class="form-control input-moderno{% if form.telefono.errors %} is-invalid{% endif %}" 
+                               id="{{ form.telefono.id_for_label }}"
+                               placeholder="Ingrese el teléfono del proveedor"
+                               style="background: #ffffff !important; 
+                                      border: 2px solid {% if form.telefono.errors %}#ef4444{% else %}#e2e8f0{% endif %} !important; 
+                                      color: #374151 !important; 
+                                      border-radius: 8px !important; 
+                                      padding: 12px 16px !important; 
+                                      font-size: 0.95rem !important; 
+                                      box-shadow: {% if form.telefono.errors %}0 0 0 3px rgba(239, 68, 68, 0.1){% else %}0 1px 3px rgba(0, 0, 0, 0.1){% endif %} !important; 
+                                      font-weight: 500 !important; 
+                                      transition: all 0.3s ease !important;">
+                        {% if form.telefono.errors %}
+                            <div class="mt-2">
+                                {% for error in form.telefono.errors %}
+                                    <small class="text-danger d-block" style="font-size: 0.8rem; font-weight: 500;">
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                    </small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+
+            <!-- Mostrar errores generales del formulario -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger mt-2" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #dc2626; border-radius: 6px; padding: 8px 12px; font-size: 0.85rem;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Mostrar mensajes de Django -->
+            {% if messages %}
+                <div class="mt-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="modal-footer py-2" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+            <button type="button" class="btn btn-secondary btn-sm me-2" data-bs-dismiss="modal" 
+                    style="background: linear-gradient(45deg, #6b7280, #4b5563); border: none; box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3); font-weight: 600; border-radius: 6px; color: white;">
+                <i class="fas fa-times me-1"></i>
+                Cancelar
+            </button>
+            {% if tipo == 'Nuevo' %}
+                <button type="submit" class="btn btn-success btn-sm" form="proveedorForm"
+                        style="background: linear-gradient(45deg, #10b981, #059669); border: none; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3); font-weight: 600; border-radius: 6px; color: white;">
+                    <i class="fas fa-check me-1"></i>
+                    Crear Proveedor
+                </button>
+            {% else %}
+                <button type="submit" class="btn btn-warning btn-sm" form="proveedorForm"
+                        style="background: linear-gradient(45deg, #f59e0b, #d97706); border: none; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3); font-weight: 600; border-radius: 6px; color: white;">
+                    <i class="fas fa-save me-1"></i>
+                    Actualizar Proveedor
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos específicos para el input moderno */
+    .input-moderno:focus:not(.is-invalid) {
+        background: #ffffff !important;
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important, 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+        color: #374151 !important;
+        outline: none !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    .input-moderno:hover:not(:focus):not(.is-invalid) {
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-1px) !important;
+    }
+    
+    /* Estados de error */
+    .input-moderno.is-invalid {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+        background: #fef2f2 !important;
+    }
+    
+    .input-moderno.is-invalid:focus {
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+        background: #ffffff !important;
+    }
+    
+    /* Placeholder mejorado */
+    .input-moderno::placeholder {
+        color: #9ca3af !important;
+        font-weight: 400 !important;
+    }
+    
+    /* Hover effects para botones del modal */
+    .modal-footer .btn:hover {
+        transform: translateY(-2px) !important;
+        filter: brightness(1.05) !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    /* Asegurar que el contenedor no interfiera */
+    .input-wrapper {
+        position: relative;
+    }
+    
+    /* Forzar que se apliquen los estilos */
+    input[type="text"].input-moderno {
+        background: #ffffff !important;
+        color: #374151 !important;
+        border-radius: 8px !important;
+        padding: 12px 16px !important;
+        font-size: 0.95rem !important;
+        font-weight: 500 !important;
+        transition: all 0.3s ease !important;
+        width: 100% !important;
+    }
+    
+    /* Estilos para mensajes de error */
+    .text-danger {
+        color: #dc2626 !important;
+    }
+</style>

@@ -1,0 +1,450 @@
+{% load custom_filters %}
+
+<div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+        <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);">
+            <h4 class="modal-title mb-0">
+                <i class="fas fa-receipt me-2"></i>
+                Detalle de Venta
+            </h4>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <div class="modal-body p-4" style="background-color: #f8fafc;">
+            <!-- Información Principal de la Venta -->
+            <div class="info-card mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <i class="fas fa-hashtag text-primary me-2"></i>
+                            <strong class="info-label">VENTA #</strong>
+                            <span class="info-value">{{venta.id}}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-calendar-alt text-primary me-2"></i>
+                            <strong class="info-label">FECHA:</strong>
+                            <span class="info-value">{{venta.fecha}}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <i class="fas fa-user-tie text-primary me-2"></i>
+                            <strong class="info-label">EMPLEADO:</strong>
+                            <span class="info-value">{{venta.empleado}}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-user text-primary me-2"></i>
+                            <strong class="info-label">CLIENTE:</strong>
+                            <span class="info-value">{{venta.cliente}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de Productos -->
+            <h5 class="productos-title">
+                <i class="fas fa-boxes me-2"></i>
+                PRODUCTOS
+            </h5>
+            
+            <div class="table-responsive">
+                <table class="table-custom">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-sort-numeric-up me-2"></i>CANTIDAD</th>
+                            <th><i class="fas fa-box me-2"></i>PRODUCTO</th>
+                            <th><i class="fas fa-tag me-2"></i>PRECIO ORIGINAL</th>
+                            <th><i class="fas fa-edit me-2"></i>PRECIO VENTA</th>
+                            <th><i class="fas fa-calculator me-2"></i>SUBTOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto in dxp %}
+                            <tr>
+                                <td class="text-center">
+                                    <span class="cantidad-badge">{{ producto.cantidad|format_cantidad:producto.producto.unidad_medida }}</span>
+                                </td>
+                                <td>
+                                    <div class="producto-info">
+                                        <strong>{{ producto.producto.nombre }}</strong>
+                                        {% if producto.producto.marca %}
+                                            <br><small class="marca-texto">{{ producto.producto.marca }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="precio-original">
+                                        {{ producto.precio_original_display }}
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="precio-venta-container">
+                                        <div class="precio-venta">
+                                            {{ producto.precio_venta_display }}
+                                        </div>
+                                        {% if producto.es_precio_modificado %}
+                                            <div class="precio-modificado-simple">
+                                                <small class="badge-precio-especial bg-info">
+                                                    <i class="fas fa-edit"></i> Precio modificado
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-end">
+                                    <div class="subtotal-final">
+                                        <strong>${{ producto.subtotal_producto|floatformat:2 }}</strong>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center productos-vacios">
+                                    <i class="fas fa-box-open fa-2x mb-2"></i>
+                                    <br>No hay productos disponibles.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Total con información de descuento -->
+            <div class="total-section">
+                {% if venta.descuento > 0 %}
+                    <div class="descuento-info mb-3">
+                        <div class="alert alert-info d-flex align-items-center">
+                            <i class="fas fa-percentage me-2"></i>
+                            <span><strong>Descuento general aplicado:</strong> {{ venta.descuento }}%</span>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="total-card">
+                    <h4 class="total-texto">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        TOTAL: ${{venta.total|floatformat:2}}
+                    </h4>
+                    
+                    <!-- Información de métodos de pago -->
+                    <div class="metodos-pago mt-3">
+                        {% if venta.metodo_pago_1 %}
+                            <div class="metodo-item">
+                                <i class="fas fa-credit-card me-2"></i>
+                                <strong>{{ venta.metodo_pago_1|upper }}:</strong> ${{ venta.monto_pago_1|floatformat:2 }}
+                            </div>
+                        {% endif %}
+                        {% if venta.metodo_pago_2 and venta.monto_pago_2 > 0 %}
+                            <div class="metodo-item">
+                                <i class="fas fa-credit-card me-2"></i>
+                                <strong>{{ venta.metodo_pago_2|upper }}:</strong> ${{ venta.monto_pago_2|floatformat:2 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer py-3" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+            <a href="{% url 'detalle_venta_pdf' venta.id %}" class="btn btn-success me-2" target="_blank">
+                <i class="fas fa-print me-2"></i>
+                Imprimir Detalle
+            </a>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Información de la venta */
+    .info-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .info-label {
+        color: #374151;
+        margin-right: 8px;
+    }
+    
+    .info-value {
+        color: #6b7280;
+    }
+    
+    .productos-title {
+        color: #1e40af;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    
+    /* Tabla personalizada - 5 COLUMNAS */
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        background: #ffffff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
+        border: 1px solid #e2e8f0;
+    }
+
+    .table-custom thead th {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+        color: white;
+        text-align: left;
+        padding: 12px 15px;
+        font-weight: bold;
+        text-transform: uppercase;
+        border: none;
+        font-size: 0.85rem;
+    }
+
+    .table-custom tbody tr {
+        background-color: #ffffff;
+        color: #374151;
+        border-bottom: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
+    
+    .table-custom tbody tr:hover {
+        background-color: rgba(59, 130, 246, 0.05);
+        transform: translateY(-1px);
+    }
+
+    .table-custom tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .table-custom td {
+        padding: 12px 15px;
+        vertical-align: middle;
+        border: none;
+        font-size: 0.9rem;
+    }
+    
+    .cantidad-badge {
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        color: white;
+        font-size: 0.85rem;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
+        min-width: 40px;
+    }
+    
+    .producto-info strong {
+        color: #374151;
+        font-size: 0.95rem;
+    }
+    
+    .marca-texto {
+        color: #6b7280;
+        font-style: italic;
+    }
+    
+    /* ESTILOS PARA PRECIOS */
+    .precio-original {
+        color: #6b7280;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .precio-venta-container {
+        position: relative;
+    }
+    
+    .precio-venta {
+        color: #1e40af;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .precio-modificado-simple {
+        margin-top: 6px;
+    }
+    
+    .badge-precio-especial {
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        display: inline-block;
+        color: white;
+    }
+    
+    .badge-precio-especial.bg-info {
+        background: linear-gradient(45deg, #3b82f6, #2563eb) !important;
+    }
+    
+    /* ESTILOS SIMPLIFICADOS PARA SUBTOTALES */
+    .subtotal-final {
+        color: #059669;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .productos-vacios {
+        padding: 40px 20px;
+        color: #6b7280;
+        font-style: italic;
+    }
+    
+    /* Total y descuento */
+    .total-section {
+        margin-top: 30px;
+    }
+    
+    .descuento-info .alert {
+        border: none;
+        border-radius: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .total-card {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #0ea5e9;
+        border-radius: 10px;
+        padding: 25px;
+        text-align: right;
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
+    }
+    
+    .total-texto {
+        color: #0c4a6e;
+        font-weight: bold;
+        margin: 0;
+        font-size: 1.6rem;
+    }
+    
+    .metodos-pago {
+        text-align: left;
+        padding-top: 15px;
+        border-top: 1px solid #0ea5e9;
+    }
+    
+    .metodo-item {
+        color: #0369a1;
+        font-size: 0.95rem;
+        margin-bottom: 5px;
+    }
+    
+    /* Botones */
+    .btn-success {
+        background: linear-gradient(45deg, #10b981, #059669);
+        border: none;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-transform: uppercase;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(45deg, #059669, #047857);
+        box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: linear-gradient(45deg, #6b7280, #4b5563);
+        border: none;
+        box-shadow: 0 2px 4px rgba(107, 114, 128, 0.3);
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-transform: uppercase;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(45deg, #4b5563, #374151);
+        box-shadow: 0 4px 8px rgba(107, 114, 128, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .modal-dialog {
+            max-width: 95%;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .info-item {
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+        
+        .table-custom thead th,
+        .table-custom tbody td {
+            padding: 8px 6px;
+            font-size: 0.8rem;
+        }
+        
+        .cantidad-badge {
+            font-size: 0.75rem;
+            padding: 6px 10px;
+        }
+        
+        .badge-precio-especial {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+        }
+        
+        .total-texto {
+            font-size: 1.3rem;
+        }
+        
+        .btn-success,
+        .btn-secondary {
+            padding: 10px 18px;
+            font-size: 0.85rem;
+        }
+        
+        .producto-info strong {
+            font-size: 0.85rem;
+        }
+        
+        .precio-venta {
+            font-size: 0.9rem;
+        }
+        
+        .subtotal-final {
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<script>
+// Script simplificado
+$(document).ready(function() {
+    console.log('📊 Detalle de venta limpio cargado');
+    
+    // Log cuando se abre el modal
+    $(document).on('shown.bs.modal', '#edicion', function() {
+        console.log('🔍 Modal de detalle abierto');
+        
+        const total = $('.total-texto').text().replace(/[^0-9.,]/g, '');
+        console.log(`💰 Total: $${total}`);
+        
+        // Contar productos con precios especiales
+        const preciosEspeciales = $('.badge-precio-especial').length;
+        console.log(`✨ Productos con precios especiales: ${preciosEspeciales}`);
+    });
+});
+</script>

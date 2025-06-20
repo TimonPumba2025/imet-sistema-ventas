@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+
+{% block extra_css %}
+<style>
+    .badge-activo {
+        background-color: #28a745 !important;
+        color: white;
+    }
+    
+    .badge-bloqueado {
+        background-color: #dc3545 !important;
+        color: white;
+    }
+    
+    .badge-empleado {
+        background-color: #17a2b8 !important;
+        color: white;
+    }
+    
+    .badge-administrador {
+        background-color: #ffc107 !important;
+        color: #212529;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="page-title">
+        <i class="fas fa-users me-2"></i>Listado de Usuarios
+    </h1>
+    <p>Sistema de gestión La Guarida de Timón</p>
+</div>
+
+<div class="content-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'nuevo_usuario' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus me-2"></i>Agregar Usuario
+        </a>
+    </div>
+    
+    {% if usuarios %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover" id="usuarios">
+            <thead class="table-primary">
+                <tr>
+                    <th><i class="fas fa-user me-1"></i>Usuario</th>
+                    <th><i class="fas fa-id-card me-1"></i>Nombre</th>
+                    <th><i class="fas fa-signature me-1"></i>Apellido</th>
+                    <th><i class="fas fa-envelope me-1"></i>Email</th>
+                    <th><i class="fas fa-clock me-1"></i>Último Ingreso</th>
+                    <th><i class="fas fa-user-tag me-1"></i>Tipo de Usuario</th>
+                    <th><i class="fas fa-toggle-on me-1"></i>Estado</th>
+                    <th><i class="fas fa-cogs me-1"></i>Opciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.username }}</td>
+                    <td>{{ usuario.first_name }}</td>
+                    <td>{{ usuario.last_name }}</td>
+                    <td>
+                        {% if usuario.email %}
+                            {{ usuario.email }}
+                        {% else %}
+                            <span class="text-muted">Sin email</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if usuario.last_login %}
+                            {{ usuario.last_login|date:"d/m/Y H:i" }}
+                        {% else %}
+                            <span class="text-muted">Nunca</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if usuario.groups.first %}
+                            {% if usuario.groups.first.name|upper == 'ADMINISTRADOR' %}
+                                <span class="badge badge-administrador">
+                                    <i class="fas fa-crown me-1"></i>ADMINISTRADOR
+                                </span>
+                            {% else %}
+                                <span class="badge badge-empleado">
+                                    <i class="fas fa-user me-1"></i>{{ usuario.groups.first.name|upper }}
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-question me-1"></i>SIN ROL
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if usuario.is_active %}
+                            <span class="badge badge-activo">
+                                <i class="fas fa-check-circle me-1"></i>ACTIVO
+                            </span>
+                        {% else %}
+                            <span class="badge badge-bloqueado">
+                                <i class="fas fa-ban me-1"></i>BLOQUEADO
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'modificar_usuario' usuario.id %}" 
+                               class="btn btn-warning btn-sm" 
+                               title="Editar usuario">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-users fa-2x mb-2"></i><br>
+        No hay usuarios registrados.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

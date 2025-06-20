@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h1 class="form-title">Modificación Cliente </h1>
+    <div class="messages">
+        {% for message in messages %}
+            <p class="alert alert-warning">{{ message }}</p>
+        {% endfor%}
+    </div>
+    <form method="POST" class="form-custom">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+        
+        <div class="form-footer">
+            <button type="submit" class="btn btn-confirmar">Registrar</button>
+            <a href="{% url 'clientes' %}" class="btn btn-cancelar">Cancelar</a>
+        </div>
+    </form>
+</div>
+<style>
+.form-container {
+    width: 90%;
+    max-width: 1200px; 
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #2a2a3a;
+    border-radius: 10px;
+    
+    border-color: #fff;
+}
+
+
+.form-title {
+    text-align: center;
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+
+.form-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 30px; 
+    margin-bottom: 30px;
+}
+
+
+label {
+    color: #fff;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+
+
+/* Estilo de los campos del formulario */
+input, select, textarea {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    color: white;
+    font-size: 1rem;
+    border-radius: 5px;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+/* Estilo de los botones */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px 5px;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.btn-confirmar {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-confirmar:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+.btn-cancelar {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-cancelar:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

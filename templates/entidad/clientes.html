@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% load static %} 
+{% block title %}Clientes{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cliente-nombre {
+        font-weight: 600;
+        color: #1e40af;
+    }
+    
+    .cliente-icon {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 10px;
+    }
+    
+    .dni-badge {
+        background-color: #6366f1 !important;
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 12px;
+        font-family: monospace;
+    }
+    
+    .telefono-badge {
+        background-color: #10b981 !important;
+        color: white;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 12px;
+    }
+    
+    .email-text {
+        color: #059669;
+        font-size: 0.9rem;
+    }
+    
+    .btn-nuevo-cliente {
+        background: linear-gradient(45deg, #8b5cf6, #7c3aed);
+        border: none;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .btn-nuevo-cliente:hover {
+        background: linear-gradient(45deg, #7c3aed, #6d28d9);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .btn-ver-ventas {
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        border: none;
+        color: white;
+    }
+    
+    .btn-ver-ventas:hover {
+        background: linear-gradient(45deg, #2563eb, #1d4ed8);
+        color: white;
+    }
+    
+    .table tbody tr:hover {
+        background-color: #f8fafc;
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="page-title">
+        <i class="fas fa-users me-2"></i>Listado de Clientes
+    </h1>
+    <p>Sistema de gestión La Guarida de Timón</p>
+</div>
+
+<div class="content-section">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button type="button" class="btn btn-nuevo-cliente" onclick="abrir_modal_cliente('{% url 'nuevo_cliente' %}')">
+            <i class="fas fa-user-plus me-2"></i>Agregar Cliente
+        </button>
+        
+        {% if clientes %}
+        <div class="text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            {{ clientes|length }} cliente{{ clientes|length|pluralize:"s" }} registrado{{ clientes|length|pluralize:"s" }}
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if clientes %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover" id="clientes">
+            <thead class="table-primary">
+                <tr>
+                    <th><i class="fas fa-id-card me-1"></i>DNI</th>
+                    <th><i class="fas fa-user me-1"></i>Cliente</th>
+                    <th><i class="fas fa-envelope me-1"></i>Email</th>
+                    <th><i class="fas fa-phone me-1"></i>Teléfono</th>
+                    <th class="text-center"><i class="fas fa-cogs me-1"></i>Opciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td>
+                        {% if cliente.dni %}
+                            <span class="badge dni-badge">
+                                <i class="fas fa-id-badge me-1"></i>{{ cliente.dni }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">
+                                <i class="fas fa-id-badge me-1"></i>Sin DNI
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="cliente-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="cliente-nombre">{{ cliente.nombre }} {{ cliente.apellido }}</div>
+                                {% if not cliente.nombre and not cliente.apellido %}
+                                    <small class="text-muted">Sin nombre registrado</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if cliente.correo %}
+                            <span class="email-text">
+                                <i class="fas fa-envelope me-1"></i>{{ cliente.correo }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">
+                                <i class="fas fa-envelope-open me-1"></i>Sin email
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if cliente.telefono %}
+                            <span class="badge telefono-badge">
+                                <i class="fas fa-phone me-1"></i>{{ cliente.telefono }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">
+                                <i class="fas fa-phone-slash me-1"></i>Sin teléfono
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group" role="group">
+                            <button type="button" 
+                                    class="btn btn-warning btn-sm" 
+                                    title="Editar cliente {{ cliente.nombre }} {{ cliente.apellido }}" 
+                                    onclick="abrir_modal_cliente('{% url 'modificar_cliente' cliente.id %}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <a href="{% url 'ventas_clientes' cliente.id %}" 
+                               class="btn btn-ver-ventas btn-sm"
+                               title="Ver ventas de {{ cliente.nombre }} {{ cliente.apellido }}">
+                                <i class="fas fa-shopping-cart"></i>
+                            </a>
+                            {% if perms.auth.add_user %}
+                            <button type="button" 
+                                    class="btn btn-danger btn-sm" 
+                                    title="Eliminar cliente {{ cliente.nombre }} {{ cliente.apellido }}" 
+                                    onclick="abrir_modal_eliminacion('{% url 'eliminar_cliente' cliente.id %}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        <div class="mb-3">
+            <i class="fas fa-users fa-3x text-muted"></i>
+        </div>
+        <h4 class="alert-heading">No hay clientes registrados</h4>
+        <p class="mb-3">Comienza agregando tu primer cliente para gestionar mejor tus ventas</p>
+        <button type="button" class="btn btn-nuevo-cliente btn-lg" onclick="abrir_modal_cliente('{% url 'nuevo_cliente' %}')">
+            <i class="fas fa-user-plus me-2"></i>Crear Primer Cliente
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Container para eliminar -->
+<div class="modal fade" id="eliminacion" tabindex="-1" aria-hidden="true"></div>
+
+<!-- Modal Container para nuevo/editar cliente -->
+<div class="modal fade" id="clienteModal" tabindex="-1" aria-hidden="true"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="text/javascript">
+    var $ = jQuery.noConflict();
+
+    // Modal de eliminación
+    function abrir_modal_eliminacion(url) {
+        $('#eliminacion').load(url, function() {
+            $(this).modal('show');
+        });
+    }
+
+    // Modal de nuevo/editar cliente
+    function abrir_modal_cliente(url) {
+        $('#clienteModal').load(url, function() {
+            $(this).modal('show');
+        });
+    }
+
+    // Manejar formulario de eliminar cliente
+    $(document).on('submit', '#eliminarClienteForm', function(event) {
+        event.preventDefault(); 
+        const form = $(this);
+
+        $.ajax({
+            url: form.attr('action'),
+            type: form.attr('method'),
+            data: form.serialize(),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#eliminacion').modal('hide');
+                    
+                    // Mostrar mensaje de éxito
+                    $('body').prepend(
+                        '<div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert">' +
+                        '<i class="fas fa-check-circle me-2"></i>Cliente eliminado correctamente' +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                        '</div>'
+                    );
+                    
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alert('Error: ' + (response.error || 'No se pudo eliminar el cliente'));
+                }
+            },
+            error: function(xhr) {
+                console.error("Error al procesar el formulario:", xhr.responseText);
+                alert('Error al eliminar el cliente. Por favor, inténtalo de nuevo.');
+            }
+        });
+    });
+
+    // Manejar formulario de nuevo/editar cliente
+    $(document).on('submit', '#clienteForm', function(event) {
+        event.preventDefault(); 
+        const form = $(this);
+
+        $.ajax({
+            url: form.attr('action'),
+            type: form.attr('method'),
+            data: form.serialize(),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#clienteModal').modal('hide');
+                    
+                    // Mostrar mensaje de éxito
+                    const mensaje = form.find('input[name="nombre"]').val() ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente';
+                    $('body').prepend(
+                        '<div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert">' +
+                        '<i class="fas fa-check-circle me-2"></i>' + mensaje +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                        '</div>'
+                    );
+                    
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    $('#clienteModal').html(response);
+                }
+            },
+            error: function(xhr) {
+                console.error("Error al procesar el formulario:", xhr.responseText);
+                alert('Error al procesar el cliente. Por favor, inténtalo de nuevo.');
+            }
+        });
+    });
+</script>
+{% endblock %}

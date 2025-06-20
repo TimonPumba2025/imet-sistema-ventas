@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Factura de Venta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .invoice-info {
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        
+        .invoice-info span {
+            margin: 0 20px;
+        }
+        
+        /* Company Section */
+        .company-section {
+            margin-bottom: 25px;
+        }
+        
+        .company-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .company-details {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.3;
+        }
+        
+        /* Client Section */
+        .client-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        
+        .client-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .client-info {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .client-info p {
+            margin: 3px 0;
+        }
+        
+        /* Products Table */
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        
+        .products-table th {
+            background-color: #333;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .products-table th:nth-child(2),
+        .products-table th:nth-child(3),
+        .products-table th:nth-child(4) {
+            text-align: right;
+        }
+        
+        .products-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 11px;
+        }
+        
+        .products-table td:nth-child(2),
+        .products-table td:nth-child(3),
+        .products-table td:nth-child(4) {
+            text-align: right;
+        }
+        
+        .products-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .product-name {
+            font-weight: bold;
+        }
+        
+        /* Summary Section */
+        .summary-section {
+            margin-top: 30px;
+            float: right;
+            width: 300px;
+        }
+        
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .summary-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+        }
+        
+        .summary-table td:first-child {
+            font-weight: bold;
+            text-align: right;
+            width: 60%;
+        }
+        
+        .summary-table td:last-child {
+            text-align: right;
+            width: 40%;
+        }
+        
+        .total-row {
+            background-color: #333;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .total-row td {
+            border: none;
+            padding: 12px;
+        }
+        
+        /* Clear float */
+        .clearfix {
+            clear: both;
+        }
+        
+        /* Thank you section */
+        .thank-you {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            padding: 20px;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>FACTURA DE VENTA</h1>
+            <div class="invoice-info">
+                <span><strong>N° Factura:</strong> {{ venta.id|stringformat:"06d" }}</span>
+                <span><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y" }}</span>
+            </div>
+        </div>
+
+        <!-- Company Info -->
+        <div class="company-section">
+            <div class="company-name">{{ venta.caja.sucursal.nombre }}</div>
+            <div class="company-details">
+                <strong>Dirección:</strong> Av. Sin asignar 123, Ciudad<br>
+                <strong>Teléfono:</strong> +54 000 000 000<br>
+                <strong>Email:</strong> contacto@correo.com
+            </div>
+        </div>
+
+        <!-- Client Info -->
+        <div class="client-section">
+            <div class="client-title">Información del Cliente</div>
+            <div class="client-info">
+                <p><strong>Nombre:</strong> {{ venta.cliente.nombre }} {{ venta.cliente.apellido }}</p>
+                <p><strong>Teléfono:</strong> {{ venta.cliente.telefono }}</p>
+            </div>
+        </div>
+
+        <!-- Products Table -->
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dxp in detalle_venta_producto_list %}
+                <tr>
+                    <td class="product-name">{{ dxp.producto.nombre }}</td>
+                    <td>{{ dxp.cantidad }}</td>
+                    <td>${{ dxp.producto.precio|floatformat:2 }}</td>
+                    <td>${{ dxp.subtotal_producto|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Summary -->
+        <div class="summary-section">
+            <table class="summary-table">
+                <tr>
+                    <td>Subtotal:</td>
+                    <td>${{ total_sin_descuento|floatformat:2 }}</td>
+                </tr>
+                {% if descuento %}
+                <tr>
+                    <td>Descuento ({{ descuento|floatformat:1 }}%):</td>
+                    <td>-${% widthratio total_sin_descuento 100 descuento %}</td>
+                </tr>
+                {% endif %}
+                <tr class="total-row">
+                    <td>TOTAL:</td>
+                    <td>${{ total_final|floatformat:2 }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <!-- Thank You -->
+        <div class="thank-you">
+            ¡Gracias por su compra!
+        </div>
+    </div>
+</body>
+</html>
