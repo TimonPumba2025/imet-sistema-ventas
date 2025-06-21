@@ -28,17 +28,17 @@ urlpatterns = [
     #PROVEEDORES_PRODUCTOS
     path('proveedores_producto/', views.proveedores_productos, name="proveedores_productos"),
     path('nuevo_proveedor_producto/', views.nuevo_proveedor_producto, name="nuevo_proveedor_producto"),
-    path('modificar_proveedor_producto/<int:pk>', views.modificar_proveedor_producto, name="modificar_proveedor_producto"),
-    path('eliminar_proveedor_producto/<int:pk>', views.eliminar_proveedor_producto, name="eliminar_proveedor_producto"),
+    path('modificar_proveedor_producto/<int:pk>/', views.modificar_proveedor_producto, name="modificar_proveedor_producto"),
+    path('eliminar_proveedor_producto/<int:pk>/', views.eliminar_proveedor_producto, name="eliminar_proveedor_producto"),
 
     #CAJA
-    path('caja',views.caja, name='caja'),
+    path('caja/',views.caja, name='caja'),
     path('abrir_caja/',views.abrir_caja, name='abrir_caja'),
     path('cerrar_caja/',views.cerrar_caja, name='cerrar_caja'),
     path('ingresar_dinero/',views.ingresar_dinero, name='ingresar_dinero'),
     path('retirar_dinero/',views.retirar_dinero, name='retirar_dinero'),
     path('cajas',views.cajas, name='cajas'),
-    path('caja/<int:pk>/ventas', views.ventas, name='ventas'),
+    path('caja/<int:pk>/ventas/', views.ventas, name='ventas'),
 
     path('cierre_caja_pdf/<int:pk>/', views.cierre_caja_pdf, name='cierre_caja_pdf'),
 
@@ -56,20 +56,20 @@ urlpatterns = [
 
 
     # CLIENTES
-    path("clientes", views.clientes, name="clientes"),
+    path("clientes/", views.clientes, name="clientes"),
     path('nuevo_cliente/', views.nuevo_cliente, name="nuevo_cliente"),
-    path("modificar_cliente/<int:pk>",views.modificar_cliente, name="modificar_cliente"),
-    path("eliminar_cliente/<int:pk>",views.eliminar_cliente, name="eliminar_cliente"),
-    path('ventas_clientes/<int:pk>/ventas', views.ventas_clientes, name='ventas_clientes'),
+    path("modificar_cliente/<int:pk>/",views.modificar_cliente, name="modificar_cliente"),
+    path("eliminar_cliente/<int:pk>/",views.eliminar_cliente, name="eliminar_cliente"),
+    path('ventas_clientes/<int:pk>/ventas/', views.ventas_clientes, name='ventas_clientes'),
 
     #LOGIN
     path("usuarios/", views.usuarios, name='usuarios'),
     path("nuevo_usuario/", views.nuevo_usuario, name='nuevo_usuario'),
-    path("modificar_usuario/<int:pk>", views.modificar_usuario, name='modificar_usuario'),
-    path("eliminar_usuario/<int:pk>", views.eliminar_usuario, name='eliminar_usuario'), ##CREO QUE NO IRIA EN EL SISTEMA. SOLO PARA PROBAR
+    path("modificar_usuario/<int:pk>/", views.modificar_usuario, name='modificar_usuario'),
+    path("eliminar_usuario/<int:pk>/", views.eliminar_usuario, name='eliminar_usuario'), ##CREO QUE NO IRIA EN EL SISTEMA. SOLO PARA PROBAR
     path("login/", views.user_login, name="login"),
     path("logout/", views.login_logout, name='logout'),
-    path("change_password/<int:pk>", views.change_password_user, name='change_password'),
+    path("change_password/<int:pk>/", views.change_password_user, name='change_password'),
 
     path("elegir_sucursal/", views.elegir_sucursal, name="elegir_sucursal"),
     

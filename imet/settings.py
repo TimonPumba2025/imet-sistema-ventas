@@ -25,7 +25,7 @@ SECRET_KEY = 'mc7!^g8_bn%*!8ik=p=z=rxoymf$zg$t9%*kjnus2cds4o!e6n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Cambiar a False en producción
-DEBUG = False
+DEBUG = True
 
 # Configurar hosts permitidos para producción
 ALLOWED_HOSTS = [
