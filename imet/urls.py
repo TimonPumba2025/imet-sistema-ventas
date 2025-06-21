@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path,include
 from entidad.views import login,logout
 from django.contrib.auth import views as auth_views
+
+handler404 = 'entidad.views.mi_error_404'  # si tu vista está en entidad/views.py
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('entidad.urls')),

@@ -95,6 +95,8 @@ from django.contrib.auth.models import User
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+def mi_error_404(request, exception):
+    return render(request, '404.html', status=404)
 
 def home(request):
     sucursal_id = request.session.get('sucursal_id')
