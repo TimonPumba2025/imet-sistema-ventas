@@ -1765,10 +1765,10 @@
     // Buscar productos inteligente - CORREGIDA
     function buscarProductosInteligente(termino) {
         console.log('🔍 FUNCIÓN EJECUTADA - Término:', termino);
-        console.log('📡 URL que se va a llamar:', 'http://127.0.0.1:8000/buscar-productos-inteligente/');
+        console.log('📡 URL que se va a llamar:', '/buscar-productos-inteligente/');
         
         $.ajax({
-            url: 'http://127.0.0.1:8000/buscar-productos-inteligente/',
+            url: '/buscar-productos-inteligente/',
             method: 'GET',
             data: { 
                 termino: termino,
@@ -1945,7 +1945,7 @@
         botonBuscar.prop('disabled', true);
         
         $.ajax({
-            url: 'http://127.0.0.1:8000/buscar-producto-codigo/',
+            url: '/buscar-producto-codigo/',
             method: 'GET',
             data: { codigo: codigo },
             success: function(response) {

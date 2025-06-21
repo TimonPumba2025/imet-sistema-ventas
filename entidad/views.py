@@ -1903,7 +1903,7 @@ def ventas_clientes(request, pk):
 def usuarios(request):
     if not request.user.has_perm('entidad.delete_caja'):
         return redirect('permiso_denegado')
-    usuarios_list= User.objects.filter().exclude(username='admin')
+    usuarios_list= User.objects.filter().exclude(username='estebanadmin')
     return render(request, 'login/usuarios.html', {'usuarios': usuarios_list})
 
 
