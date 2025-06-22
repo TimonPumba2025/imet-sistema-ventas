@@ -1993,37 +1993,42 @@ def user_login(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-
-
+        
+        # Buscar el usuario de forma case-insensitive
         try:
-            usuario = User.objects.get(username=username)
+            usuario = User.objects.get(username__iexact=username)
+            # Usar el username exacto de la base de datos para authenticate
+            user = authenticate(request, username=usuario.username, password=password)
         except User.DoesNotExist:
             messages.error(request, 'Nombre de usuario incorrecto.')
             return render(request, 'login/login.html')
-        
 
         if user is not None:
+            # Resetear intentos fallidos del día actual al hacer login exitoso
+            AccesoUsuario.objects.filter(
+                usuario=usuario, 
+                tipo=False, 
+                fecha_ingreso=datetime.now().date()
+            ).delete()
+            
             AccesoUsuario.objects.create(usuario=usuario,
                                         ip_address=request.META['REMOTE_ADDR'],
-                                        tipo= True)
+                                        tipo=True)
             login(request, user)
             return redirect('elegir_sucursal')
         else:
-            intento = AccesoUsuario.objects.filter(usuario=usuario, tipo= False, fecha_ingreso= datetime.now().date()).count()
-            if  intento > 4:
-                user_desactivado = User.objects.get(username=usuario)
+            intento = AccesoUsuario.objects.filter(usuario=usuario, tipo=False, fecha_ingreso=datetime.now().date()).count()
+            if intento > 4:
+                user_desactivado = User.objects.get(username=usuario.username)
                 user_desactivado.is_active = False
                 user_desactivado.save()
-                messages.error(request, 'Usuario bloqueado.Por favor, comuniquese con su Administrador.')
+                messages.error(request, 'Usuario bloqueado. Por favor, comuníquese con su Administrador.')
             else:
                 AccesoUsuario.objects.create(usuario=usuario,
                                             ip_address=request.META['REMOTE_ADDR'],
-                                            tipo= False)
+                                            tipo=False)
                 contador = 5 - intento
-                messages.error(request, f"Contraseña incorrecta, le quedan {contador} {'intento' if contador == 1 else 'intentos'}.")
-
-
+                messages.error(request, f"Contraseña incorreta, le quedan {contador} {'intento' if contador == 1 else 'intentos'}.")
 
     return render(request, 'login/login.html')
 
