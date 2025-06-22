@@ -1921,9 +1921,10 @@ def nuevo_usuario(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
+            user.username = form.cleaned_data.get('username').strip().lower()
             user.first_name = form.cleaned_data.get('first_name').strip().lower().capitalize()
             user.last_name = form.cleaned_data.get('last_name').strip().lower().capitalize()
-            user.email = form.cleaned_data.get('email')
+            user.email = form.cleaned_data.get('email').strip().lower()
             user.save()
 
             group = form.cleaned_data.get('group')
