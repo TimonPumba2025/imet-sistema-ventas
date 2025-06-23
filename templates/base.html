@@ -1125,128 +1125,152 @@ function initializeDataTables() {
 
         console.log('🚀 Sistema de notificaciones cargado');
 
-        class SistemaNotificacionesWebSocket {
-            constructor() {
-                console.log('📡 Iniciando WebSocket...');
-                this.initWebSocket();
-                this.requestNotificationPermission();
-            }
-            
-            initWebSocket() {
-                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const wsUrl = `${protocol}//${window.location.host}/ws/notificaciones/`;
-                
-                console.log('🔗 Conectando a:', wsUrl);
-                
-                this.socket = new WebSocket(wsUrl);
-                
-                this.socket.onopen = () => {
-                    console.log('✅ WebSocket conectado');
-                };
-                
-                this.socket.onmessage = (event) => {
-                    console.log('📥 Mensaje recibido:', event.data);
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'pago_recibido') {
-                        this.mostrarNotificacion(data.data);
-                    }
-                };
-                
-                this.socket.onclose = (event) => {
-                    console.log('❌ WebSocket cerrado:', event.code, event.reason);
-                    console.log('🔄 Reintentando en 3 segundos...');
-                    setTimeout(() => this.initWebSocket(), 3000);
-                };
-                
-                this.socket.onerror = (error) => {
-                    console.log('💥 Error WebSocket:', error);
-                };
-            }
-            
-            async requestNotificationPermission() {
-                if ('Notification' in window) {
-                    if (Notification.permission === 'default') {
-                        const permission = await Notification.requestPermission();
-                        console.log('🔔 Permiso notificaciones:', permission);
-                    }
+class SistemaNotificacionesAJAX {
+        constructor() {
+        console.log('📡 Iniciando sistema AJAX...');
+        this.requestNotificationPermission();
+        this.checkNotifications();
+        // Verificar cada 3 segundos
+        setInterval(() => this.checkNotifications(), 3000);
+    }
+    
+    async checkNotifications() {
+        try {
+            const response = await fetch('/obtener-notificaciones/', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': this.getCSRFToken()
                 }
-            }
+            });
             
-            mostrarNotificacion(data) {
-                console.log('💰 Mostrando notificación:', data);
+            if (response.ok) {
+                const data = await response.json();
                 
-                // 1. Notificación visual en la página
-                this.mostrarNotificacionVisual(data);
-                
-                // 2. Notificación del navegador
-                this.mostrarNotificacionNavegador(data);
-                
-                // 3. Sonido
-                this.reproducirSonido();
-            }
-            
-            mostrarNotificacionVisual(data) {
-                console.log('🎨 Creando notificación visual');
-                
-                // Remover notificaciones anteriores
-                const notificacionesAnteriores = document.querySelectorAll('.notificacion-pago');
-                notificacionesAnteriores.forEach(n => n.remove());
-                
-                const notification = document.createElement('div');
-                notification.className = 'notificacion-pago pulse';
-                notification.innerHTML = `
-                    <div class="notificacion-header">
-                        <div>
-                            <span class="notificacion-icon">💰</span>
-                            <strong>¡Pago Recibido!</strong>
-                        </div>
-                        <button class="notificacion-close" onclick="this.closest('.notificacion-pago').remove()">×</button>
-                    </div>
-                    <div class="notificacion-monto">${data.monto} ${data.moneda}</div>
-                    <div class="notificacion-details">
-                        <div>👤 De: ${data.email_cliente}</div>
-                        <div>📝 ${data.descripcion}</div>
-                        <div>🆔 ID: ${data.payment_id}</div>
-                    </div>
-                `;
-                
-                document.body.appendChild(notification);
-                console.log('✅ Notificación visual creada');
-                
-                // Auto-remover después de 15 segundos
-                setTimeout(() => {
-                    if (notification.parentElement) {
-                        notification.style.animation = 'slideIn 0.5s ease-out reverse';
-                        setTimeout(() => notification.remove(), 500);
-                    }
-                }, 15000);
-            }
-            
-            mostrarNotificacionNavegador(data) {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    console.log('🔔 Mostrando notificación del navegador');
-                    new Notification('💰 ¡Pago Recibido!', {
-                        body: `${data.monto} ${data.moneda} de ${data.email_cliente}`,
-                        icon: '/static/img/money.png',
-                        requireInteraction: true,
-                        tag: 'pago'
+                if (data.notificaciones && data.notificaciones.length > 0) {
+                    console.log('💰 Notificaciones encontradas:', data.notificaciones);
+                    data.notificaciones.forEach(notif => {
+                        this.mostrarNotificacion(notif);
                     });
                 }
             }
-            
-            reproducirSonido() {
-                try {
-                    console.log('🔊 Reproduciendo sonido');
-                    // Crear audio con datos embebidos
-                    const audio = new Audio();
-                    audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+Dvs2UfCTOH0fPTgjMGHm+86aOAOg==';
-                    audio.volume = 0.5;
-                    audio.play().catch(e => console.log('❌ No se pudo reproducir sonido:', e));
-                } catch (e) {
-                    console.log('❌ Error creando sonido:', e);
+        } catch (error) {
+            console.log('❌ Error verificando notificaciones:', error);
+        }
+    }
+    
+    getCSRFToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
         }
+        return cookieValue;
+    }
+    
+    async requestNotificationPermission() {
+        if ('Notification' in window) {
+            if (Notification.permission === 'default') {
+                const permission = await Notification.requestPermission();
+                console.log('🔔 Permiso notificaciones:', permission);
+            }
+        }
+    }
+    
+    mostrarNotificacion(data) {
+        console.log('💰 Mostrando notificación:', data);
+        
+        // 1. Notificación visual en la página
+        this.mostrarNotificacionVisual(data);
+        
+        // 2. Notificación del navegador
+        this.mostrarNotificacionNavegador(data);
+        
+        // 3. Sonido
+        this.reproducirSonido();
+    }
+    
+    mostrarNotificacionVisual(data) {
+        console.log('🎨 Creando notificación visual');
+        
+        // Remover notificaciones anteriores
+        const notificacionesAnteriores = document.querySelectorAll('.notificacion-pago');
+        notificacionesAnteriores.forEach(n => n.remove());
+        
+        const notification = document.createElement('div');
+        notification.className = 'notificacion-pago pulse';
+        notification.innerHTML = `
+            <div class="notificacion-header">
+                <div>
+                    <span class="notificacion-icon">💰</span>
+                    <strong>¡Pago Recibido!</strong>
+                </div>
+                <button class="notificacion-close" onclick="this.closest('.notificacion-pago').remove()">×</button>
+            </div>
+            <div class="notificacion-monto">$${data.monto} ${data.moneda}</div>
+            <div class="notificacion-details">
+                <div>👤 De: ${data.email_cliente}</div>
+                <div>📝 ${data.descripcion}</div>
+                <div>🆔 ID: ${data.payment_id}</div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        console.log('✅ Notificación visual creada');
+        
+        // Auto-remover después de 15 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.animation = 'slideIn 0.5s ease-out reverse';
+                setTimeout(() => notification.remove(), 500);
+            }
+        }, 15000);
+    }
+    
+    mostrarNotificacionNavegador(data) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            console.log('🔔 Mostrando notificación del navegador');
+            new Notification('💰 ¡Pago Recibido!', {
+                body: $${data.monto} ${data.moneda} de ${data.email_cliente},
+                requireInteraction: true,
+                tag: 'pago'
+            });
+        }
+    }
+    
+    reproducirSonido() {
+        try {
+            console.log('🔊 Reproduciendo sonido');
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (e) {
+            console.log('❌ Error creando sonido:', e);
+        }
+    }
+}
+
+
+
 
         // Función para manejar el redimensionamiento de ventana
         function handleWindowResize() {
@@ -1345,7 +1369,7 @@ function initializeDataTables() {
 
             // Inicializar sistema de notificaciones
             console.log('🎯 DOM cargado, inicializando sistema...');
-            window.sistemaNotificaciones = new SistemaNotificacionesWebSocket();
+            window.sistemaNotificaciones = new SistemaNotificacionesAJAX();
         });
 
         // También inicializar si el DOM ya está cargado
@@ -1353,12 +1377,12 @@ function initializeDataTables() {
             document.addEventListener('DOMContentLoaded', () => {
                 if (!window.sistemaNotificaciones) {
                     console.log('🎯 Inicializando sistema (DOM ya cargado)...');
-                    window.sistemaNotificaciones = new SistemaNotificacionesWebSocket();
+                    window.sistemaNotificaciones = new SistemaNotificacionesAJAX();
                 }
             });
         } else {
             console.log('🎯 Inicializando sistema inmediatamente...');
-            window.sistemaNotificaciones = new SistemaNotificacionesWebSocket();
+            window.sistemaNotificaciones = new SistemaNotificacionesAJAX();
         }
     </script>
 

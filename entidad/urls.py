@@ -5,6 +5,8 @@ from . import views
 
 urlpatterns = [
     path('webhook/mercadopago/', views.webhook_mercadopago, name='webhook_mercadopago'),
+    path('obtener-notificaciones/', views.obtener_notificaciones, name='obtener_notificaciones'), ##AGREGADO RECIENTEMENTE
+
     path('', views.home, name="home"),
     path('permiso_denegado', views.permiso_denegado, name="permiso_denegado"),
 

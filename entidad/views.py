@@ -2222,12 +2222,9 @@ def elegir_sucursal(request):
 # Tu Access Token de Mercado Pago
 MERCADO_PAGO_ACCESS_TOKEN = 'APP_USR-2566497799915459-061820-7db005db4a996ca46d987b74034d4c02-303081609' 
 
-
-
-
 @csrf_exempt
 def webhook_mercadopago(request):
-    """Webhook que envía notificaciones WebSocket"""
+    """Webhook que guarda notificaciones en BD para Gunicorn"""
     try:
         print("🔔 Webhook recibido!")
         
@@ -2256,34 +2253,21 @@ def webhook_mercadopago(request):
                             print(f"💰 Status del pago: {payment['status']}")
                             
                             if payment['status'] == 'approved':
-                                # Datos del pago
-                                pago_data = {
-                                    'monto': payment['transaction_amount'],
-                                    'moneda': payment['currency_id'],
-                                    'email_cliente': payment.get('payer', {}).get('email', 'Cliente'),
-                                    'fecha': payment.get('date_approved', 'Ahora'),
-                                    'payment_id': payment_id,
-                                    'descripcion': payment.get('description', 'Transferencia')
-                                }
-                                
-                                print("📡 Enviando notificación WebSocket...")
-                                
-                                # ENVIAR NOTIFICACIÓN VIA WEBSOCKET
-                                channel_layer = get_channel_layer()
-                                async_to_sync(channel_layer.group_send)(
-                                    "notificaciones",
-                                    {
-                                        "type": "notificacion_pago",
-                                        "data": pago_data
-                                    }
+                                # GUARDAR NOTIFICACIÓN EN BASE DE DATOS
+                                NotificacionPago.objects.create(
+                                    monto=payment['transaction_amount'],
+                                    moneda=payment['currency_id'],
+                                    email_cliente=payment.get('payer', {}).get('email', 'Cliente'),
+                                    payment_id=payment_id,
+                                    descripcion=payment.get('description', 'Transferencia')
                                 )
                                 
-                                print("✅ ¡NOTIFICACIÓN ENVIADA VIA WEBSOCKET!")
+                                print("✅ ¡NOTIFICACIÓN GUARDADA EN BD!")
                                 
                                 # También mostrar en terminal (para debug)
                                 print("\n" + "=" * 50)
-                                print(f"💰 PAGO APROBADO: ${pago_data['monto']} {pago_data['moneda']}")
-                                print(f"👤 De: {pago_data['email_cliente']}")
+                                print(f"💰 PAGO APROBADO: ${payment['transaction_amount']} {payment['currency_id']}")
+                                print(f"👤 De: {payment.get('payer', {}).get('email', 'Cliente')}")
                                 print(f"🆔 ID: {payment_id}")
                                 print("=" * 50 + "\n")
                                 
@@ -2305,6 +2289,28 @@ def webhook_mercadopago(request):
     except Exception as e:
         print(f"❌ Error general: {e}")
         return HttpResponse("OK", status=200)
+
+# 3. AGREGAR VISTA PARA OBTENER NOTIFICACIONES (en views.py)
+@login_required
+def obtener_notificaciones(request):
+    """API para obtener notificaciones nuevas"""
+    notificaciones = NotificacionPago.objects.filter(mostrada=False)
+    
+    data = []
+    for notif in notificaciones:
+        data.append({
+            'monto': float(notif.monto),
+            'moneda': notif.moneda,
+            'email_cliente': notif.email_cliente,
+            'payment_id': notif.payment_id,
+            'descripcion': notif.descripcion,
+            'fecha': notif.fecha.isoformat()
+        })
+        notif.mostrada = True
+        notif.save()
+    
+    return JsonResponse({'notificaciones': data})
+
 
 @login_required
 @require_http_methods(["GET"])

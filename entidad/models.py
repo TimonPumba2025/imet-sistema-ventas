@@ -190,5 +190,15 @@ class AccesoUsuario(models.Model):
         return f"{self.usuario} {self.ip_address}"
 
 
-
+class NotificacionPago(models.Model): ##AGREGADO RECIENTEMENTE
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
+    moneda = models.CharField(max_length=10)
+    email_cliente = models.CharField(max_length=100)
+    payment_id = models.CharField(max_length=100)
+    descripcion = models.CharField(max_length=200, default='Transferencia')
+    fecha = models.DateTimeField(auto_now_add=True)
+    mostrada = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-fecha']
 
