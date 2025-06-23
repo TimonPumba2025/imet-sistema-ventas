@@ -25,7 +25,7 @@ SECRET_KEY = 'mc7!^g8_bn%*!8ik=p=z=rxoymf$zg$t9%*kjnus2cds4o!e6n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Cambiar a False en producción
-DEBUG = False
+DEBUG = True
 
 # Configurar hosts permitidos para producción
 ALLOWED_HOSTS = [
@@ -51,10 +51,10 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Configuración de seguridad para producción
-CSRF_COOKIE_SECURE = True  # Solo HTTPS en producción
+CSRF_COOKIE_SECURE = False  # Solo HTTPS en producción
 CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = True  # Solo HTTPS en producción
-SECURE_SSL_REDIRECT = True  # Redirigir HTTP a HTTPS
+SESSION_COOKIE_SECURE = False  # Solo HTTPS en producción
+SECURE_SSL_REDIRECT = False  # Redirigir HTTP a HTTPS
 SECURE_HSTS_SECONDS = 31536000  # Un año
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
