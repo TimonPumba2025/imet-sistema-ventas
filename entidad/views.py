@@ -711,7 +711,7 @@ def nuevo_producto(request, categoria_id=None):
 
 @login_required
 def modificar_producto(request, pk):
-    if not request.user.has_perm('entidad.add_productos'):
+    if not request.user.has_perm('entidad.add_producto'):
         return redirect('permiso_denegado')
     producto = get_object_or_404(Producto, id=pk)
     
@@ -1376,6 +1376,12 @@ def crear_venta(request):
     sucursal = Sucursal.objects.get(id=sucursal_id)
     empleado = request.user
 
+
+    try:
+        caja = Caja.objects.get(activo=True, sucursal=sucursal)
+    except Caja.DoesNotExist:
+        return redirect('caja')
+    
     if request.method == 'POST':
         # ✅ CORRECCIÓN: Validar caja activa en la sucursal específica
         if not Caja.objects.filter(activo=True, sucursal=sucursal_id).exists():
