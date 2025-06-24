@@ -1234,11 +1234,11 @@ class SistemaNotificacionesAJAX {
         }, 15000);
     }
     
-    mostrarNotificacionNavegador(data) {
+   mostrarNotificacionNavegador(data) {
         if ('Notification' in window && Notification.permission === 'granted') {
             console.log('🔔 Mostrando notificación del navegador');
             new Notification('💰 ¡Pago Recibido!', {
-                body: $${data.monto} ${data.moneda} de ${data.email_cliente},
+                body: `$${data.monto} ${data.moneda} de ${data.email_cliente}`,
                 requireInteraction: true,
                 tag: 'pago'
             });
