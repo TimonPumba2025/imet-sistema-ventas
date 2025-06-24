@@ -2226,7 +2226,7 @@ def elegir_sucursal(request):
 
 
 # Tu Access Token de Mercado Pago
-MERCADO_PAGO_ACCESS_TOKEN = 'APP_USR-2566497799915459-061820-7db005db4a996ca46d987b74034d4c02-303081609' 
+MERCADO_PAGO_ACCESS_TOKEN = 'APP_USR-4019524353294450-060321-5fdffed5553ee6985180a12eae1f5b52-247566060' 
 
 @csrf_exempt
 def webhook_mercadopago(request):
