@@ -2265,7 +2265,7 @@ def webhook_mercadopago(request):
                                     moneda=payment['currency_id'],
                                     email_cliente=payment.get('payer', {}).get('email', 'Cliente'),
                                     payment_id=payment_id,
-                                    descripcion=payment.get('description', 'Transferencia')
+                                    descripcion=payment.get('description') or 'Transferencia'
                                 )
                                 
                                 print("✅ ¡NOTIFICACIÓN GUARDADA EN BD!")
