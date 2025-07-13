@@ -179,13 +179,13 @@ class AperturaCajaForm(forms.Form):
         max_digits=10,
         decimal_places=2,
         min_value=Decimal('0.01'),
-        max_value=Decimal('50000.00'),
+        max_value=Decimal('999999.00'),
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
             'placeholder': '0.00',
             'step': '0.01',
             'min': '0.01',
-            'max': '50000.00'
+            'max': '999999.00'
         }),
         label='Monto Inicial',
         help_text='Ingrese el monto con el que iniciará la caja'
@@ -195,8 +195,8 @@ class AperturaCajaForm(forms.Form):
         monto = self.cleaned_data['monto_inicial']
         if monto <= 0:
             raise forms.ValidationError('El monto debe ser mayor a 0')
-        if monto > 50000:
-            raise forms.ValidationError('El monto no puede exceder $50,000.00')
+        if monto > 999999:
+            raise forms.ValidationError('El monto no puede exceder $999,999.00')
         return monto
     
 
