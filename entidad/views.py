@@ -1228,7 +1228,7 @@ def abrir_caja(request):
                     'sucursal': sucursal
                 })
             
-            if monto_inicial > 50000:  # Límite de seguridad
+            if monto_inicial > 999999:  # Límite de seguridad
                 messages.warning(request, 'El monto inicial es muy alto. Verifique con su supervisor.')
                 return render(request, 'entidad/abrir_caja_form.html', {
                     'form': form,
