@@ -1464,7 +1464,8 @@ def crear_venta(request):
             monto_pago_1=monto_pago_1,
             metodo_pago_2=metodo_pago_2 if metodo_pago_2 else None,
             monto_pago_2=monto_pago_2,
-            descuento=descuento
+            descuento=descuento,
+            estado='PAG'
         )
 
         detalle_venta = DetalleVenta.objects.create(
@@ -1710,6 +1711,18 @@ def cierre_caja_pdf(request, pk):
         return HttpResponse("Empleado no encontrado", status=404)
     except Exception as e:
         return HttpResponse(f"Error: {str(e)}", status=500)
+
+
+"""
+Vista actualizada de venta_exitosa con sistema de puntos
+Reemplaza tu vista actual en views.py
+"""
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Venta, DetalleVenta, DetalleVentaXProducto
+from .whatsapp_utils import WhatsAppLink, procesar_puntos_venta
+
 @login_required
 def venta_exitosa(request, pk):
     if not request.user.has_perm('entidad.view_detalleventa'):
@@ -1717,10 +1730,46 @@ def venta_exitosa(request, pk):
     
     venta = Venta.objects.get(id=pk)
     detalle_venta = DetalleVenta.objects.get(venta=venta)
-    detalle_venta_producto_list = DetalleVentaXProducto.objects.filter(detalle_venta= detalle_venta)
-    return render(request, 'entidad/venta_exitosa.html', {'venta' : venta,
-                                                          'detalle_venta': detalle_venta,
-                                                          'dxp': detalle_venta_producto_list})
+    detalle_venta_producto_list = DetalleVentaXProducto.objects.filter(detalle_venta=detalle_venta)
+    
+    # ===== PROCESAR PUNTOS =====
+    puntos_info = None
+    whatsapp_link = None
+    
+    # Si la venta está pagada, tiene cliente y aún no se procesaron puntos
+    if venta.estado == "PAG" and venta.cliente and venta.puntos_otorgados == 0:
+        resultado = procesar_puntos_venta(venta, request.user)
+        
+        if resultado['success'] and resultado['puntos_otorgados'] > 0:
+            puntos_info = {
+                'puntos_ganados': resultado['puntos_otorgados'],
+                'total_puntos': resultado['total_puntos'],
+                'cliente_nombre': resultado['cliente_nombre']
+            }
+            whatsapp_link = resultado['whatsapp_link']
+    
+    # Si ya tenía puntos asignados, regenerar el link
+    elif venta.estado == "PAG" and venta.cliente and venta.puntos_otorgados > 0:
+        puntos_info = {
+            'puntos_ganados': venta.puntos_otorgados,
+            'total_puntos': venta.cliente.puntos_actuales,
+            'cliente_nombre': venta.cliente.nombre
+        }
+        whatsapp_link = WhatsAppLink.mensaje_puntos_ganados(
+            venta.cliente,
+            venta.puntos_otorgados,
+            venta.cliente.puntos_actuales,
+            venta.total
+        )
+    # ===========================
+    
+    return render(request, 'entidad/venta_exitosa.html', {
+        'venta': venta,
+        'detalle_venta': detalle_venta,
+        'dxp': detalle_venta_producto_list,
+        'puntos_info': puntos_info,  # ← NUEVO
+        'whatsapp_link': whatsapp_link  # ← NUEVO
+    })
 
     
 @login_required
@@ -2390,3 +2439,373 @@ def buscar_productos_inteligente(request):
         return JsonResponse({'success': True, 'productos': productos_data})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+
+"""
+VISTAS PARA SISTEMA DE PUNTOS
+Agregar estas vistas a tu views.py o importarlas
+"""
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.http import JsonResponse
+from django.db.models import Sum
+from decimal import Decimal
+
+from .models import (
+    RangoPuntos, Cliente, HistorialPuntos, 
+    Venta, Caja
+)
+from .whatsapp_utils import WhatsAppLink, procesar_puntos_venta
+
+
+# ========== DECORADOR ==========
+def es_admin(user):
+    """Verifica si es administrador"""
+    return user.is_superuser or user.is_staff
+
+
+# ========== GESTIÓN DE RANGOS ==========
+
+@login_required
+@user_passes_test(es_admin, login_url='permiso_denegado')
+def rangos_puntos(request):
+    """Lista todos los rangos"""
+    rangos = RangoPuntos.objects.all().order_by('monto_minimo')
+    return render(request, 'puntos/rangos_puntos.html', {
+        'rangos': rangos,
+        'titulo': 'Rangos de Puntos'
+    })
+
+
+@login_required
+@user_passes_test(es_admin, login_url='permiso_denegado')
+def nuevo_rango_puntos(request):
+    """Crea nuevo rango"""
+    if request.method == 'POST':
+        try:
+            rango = RangoPuntos.objects.create(
+                monto_minimo=Decimal(request.POST['monto_minimo']),
+                monto_maximo=Decimal(request.POST['monto_maximo']),
+                puntos_otorgados=int(request.POST['puntos_otorgados']),
+                activo=request.POST.get('activo') == 'on'
+            )
+            rango.full_clean()  # Validar
+            messages.success(request, 'Rango creado exitosamente')
+            return redirect('rangos_puntos')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+    
+    return render(request, 'puntos/form_rango_puntos.html', {
+        'titulo': 'Nuevo Rango',
+        'accion': 'Crear'
+    })
+
+
+@login_required
+@user_passes_test(es_admin, login_url='permiso_denegado')
+def modificar_rango_puntos(request, pk):
+    """Modifica un rango"""
+    rango = get_object_or_404(RangoPuntos, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            rango.monto_minimo = Decimal(request.POST['monto_minimo'])
+            rango.monto_maximo = Decimal(request.POST['monto_maximo'])
+            rango.puntos_otorgados = int(request.POST['puntos_otorgados'])
+            rango.activo = request.POST.get('activo') == 'on'
+            rango.full_clean()
+            rango.save()
+            messages.success(request, 'Rango actualizado')
+            return redirect('rangos_puntos')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+    
+    return render(request, 'puntos/form_rango_puntos.html', {
+        'titulo': 'Modificar Rango',
+        'accion': 'Actualizar',
+        'rango': rango
+    })
+
+
+@login_required
+@user_passes_test(es_admin, login_url='permiso_denegado')
+def eliminar_rango_puntos(request, pk):
+    """Elimina un rango"""
+    if request.method == 'POST':
+        rango = get_object_or_404(RangoPuntos, pk=pk)
+        rango.delete()
+        messages.success(request, 'Rango eliminado')
+    return redirect('rangos_puntos')
+
+
+# ========== CONSULTA DE PUNTOS ==========
+
+@login_required
+def consultar_puntos_cliente(request, cliente_id):
+    """Muestra puntos e historial del cliente + BOTÓN WHATSAPP"""
+    cliente = get_object_or_404(Cliente, pk=cliente_id)
+    historial = HistorialPuntos.objects.filter(cliente=cliente).order_by('-fecha')[:20]
+    
+    # Generar link de WhatsApp para consulta de puntos
+    whatsapp_link = WhatsAppLink.mensaje_consulta_puntos(cliente)
+    
+    return render(request, 'puntos/consultar_puntos.html', {
+        'cliente': cliente,
+        'historial': historial,
+        'whatsapp_link': whatsapp_link,  # ← NUEVO
+        'titulo': f'Puntos de {cliente.nombre}'
+    })
+
+
+@login_required
+@user_passes_test(es_admin, login_url='permiso_denegado')
+def ajustar_puntos_cliente(request, cliente_id):
+    """Ajustar puntos manualmente"""
+    cliente = get_object_or_404(Cliente, pk=cliente_id)
+    
+    if request.method == 'POST':
+        try:
+            tipo = request.POST.get('tipo')
+            cantidad = int(request.POST.get('cantidad'))
+            descripcion = request.POST.get('descripcion')
+            
+            if tipo == 'agregar':
+                cliente.agregar_puntos(cantidad, descripcion, request.user)
+                messages.success(request, f'Se agregaron {cantidad} puntos')
+            elif tipo == 'restar':
+                cliente.restar_puntos(cantidad, descripcion, request.user)
+                messages.success(request, f'Se restaron {cantidad} puntos')
+            
+            return redirect('consultar_puntos_cliente', cliente_id=cliente_id)
+        except Exception as e:
+            messages.error(request, str(e))
+    
+    return render(request, 'puntos/ajustar_puntos.html', {
+        'cliente': cliente,
+        'titulo': f'Ajustar Puntos - {cliente.nombre}'
+    })
+
+
+# ========== REPORTES ==========
+
+@login_required
+@user_passes_test(es_admin, login_url='permiso_denegado')
+def reporte_puntos(request):
+    """Dashboard de estadísticas"""
+    total_clientes_con_puntos = Cliente.objects.filter(puntos_actuales__gt=0).count()
+    total_puntos = Cliente.objects.aggregate(Sum('puntos_actuales'))['puntos_actuales__sum'] or 0
+    total_historico = Cliente.objects.aggregate(Sum('puntos_totales_acumulados'))['puntos_totales_acumulados__sum'] or 0
+    top_clientes = Cliente.objects.filter(activo=True).order_by('-puntos_actuales')[:10]
+    rangos_activos = RangoPuntos.objects.filter(activo=True)
+    
+    return render(request, 'puntos/reporte_puntos.html', {
+        'total_clientes_con_puntos': total_clientes_con_puntos,
+        'total_puntos_circulacion': total_puntos,
+        'total_puntos_historicos': total_historico,
+        'top_clientes': top_clientes,
+        'rangos_activos': rangos_activos
+    })
+
+
+# ========== API PARA AJAX (opcional) ==========
+
+@login_required
+def api_whatsapp_link_cliente(request, cliente_id):
+    """Genera link de WhatsApp para un cliente (AJAX)"""
+    try:
+        cliente = get_object_or_404(Cliente, pk=cliente_id)
+        link = WhatsAppLink.mensaje_consulta_puntos(cliente)
+        
+        return JsonResponse({
+            'success': True,
+            'link': link,
+            'cliente': f"{cliente.nombre} {cliente.apellido}",
+            'puntos': cliente.puntos_actuales
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+
+
+
+"""
+Vista para resetear puntos de todos los clientes
+Agregar esta función a tu views_puntos.py o views.py
+"""
+
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.db import transaction
+from .models import Cliente, HistorialPuntos
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser, login_url='permiso_denegado')
+def resetear_puntos_masivo(request):
+    """
+    Resetea los puntos de TODOS los clientes a 0
+    Solo accesible para superusuarios
+    """
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # Obtener todos los clientes con puntos
+                clientes_con_puntos = Cliente.objects.filter(puntos_actuales__gt=0)
+                total_clientes = clientes_con_puntos.count()
+                
+                if total_clientes == 0:
+                    messages.warning(request, 'No hay clientes con puntos para resetear')
+                    return redirect('reporte_puntos')
+                
+                # Resetear puntos de cada cliente
+                for cliente in clientes_con_puntos:
+                    puntos_anteriores = cliente.puntos_actuales
+                    
+                    # Registrar en historial ANTES de resetear
+                    HistorialPuntos.objects.create(
+                        cliente=cliente,
+                        tipo='VENCIDO',
+                        cantidad=puntos_anteriores,
+                        descripcion=f'Reset mensual - Puntos vencidos del período',
+                        saldo_resultante=0,
+                        empleado=request.user
+                    )
+                    
+                    # Resetear puntos
+                    cliente.puntos_actuales = 0
+                    # NO resetear puntos_totales_acumulados (es histórico)
+                    cliente.save()
+                
+                messages.success(
+                    request,
+                    f'✅ Se resetearon los puntos de {total_clientes} cliente(s) exitosamente'
+                )
+                
+        except Exception as e:
+            messages.error(request, f'❌ Error al resetear puntos: {str(e)}')
+    
+    return redirect('reporte_puntos')
+
+
+"""
+Vista simplificada para registro público de clientes
+Agregar esta función a tu views.py
+"""
+
+from django.shortcuts import render, redirect
+from .models import Cliente
+
+def registro_publico_cliente(request):
+    """
+    Formulario público de registro de clientes
+    Sin login requerido - Para QR
+    """
+    if request.method == 'POST':
+        # Obtener datos
+        nombre = request.POST.get('nombre', '').strip()
+        apellido = request.POST.get('apellido', '').strip()
+        dni = request.POST.get('dni', '').strip()
+        telefono = request.POST.get('telefono', '').strip()
+        correo = request.POST.get('correo', '').strip()
+        
+        errores = []
+        
+        # Validaciones simples
+        if not nombre or len(nombre) < 2:
+            errores.append('El nombre debe tener al menos 2 caracteres')
+        
+        if not apellido or len(apellido) < 2:
+            errores.append('El apellido debe tener al menos 2 caracteres')
+        
+        if not dni or len(dni) not in [7, 8] or not dni.isdigit():
+            errores.append('El DNI debe tener 7 u 8 dígitos numéricos')
+        elif Cliente.objects.filter(dni=dni).exists():
+            errores.append('Este DNI ya está registrado en nuestro sistema')
+        
+        if not telefono or len(telefono) != 10 or not telefono.isdigit():
+            errores.append('El teléfono debe tener exactamente 10 dígitos')
+        
+        # Si hay errores, volver a mostrar el form con los datos
+        if errores:
+            return render(request, 'registro_publico.html', {
+                'errores': errores,
+                'nombre': nombre,
+                'apellido': apellido,
+                'dni': dni,
+                'telefono': telefono,
+                'correo': correo
+            })
+        
+        # Todo OK - Crear cliente
+        cliente = Cliente.objects.create(
+            nombre=nombre.capitalize(),
+            apellido=apellido.capitalize(),
+            dni=dni,
+            telefono=telefono,
+            correo=correo,
+            activo=True
+        )
+        
+        # Redirigir a página de éxito
+        return render(request, 'registro_exitoso.html', {'cliente': cliente})
+    
+    # GET - Mostrar formulario vacío
+    return render(request, 'registro_publico.html')
+
+
+"""
+VISTA MEJORADA PARA IMPRIMIR CIERRE DE CAJA
+Agregar esta función a tu archivo views.py (REEMPLAZA la anterior si ya la agregaste)
+"""
+
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from .models import Caja
+from .thermal_printer_simple import create_printer
+
+
+@login_required
+def imprimir_cierre_caja_termica(request, pk):
+    """
+    Imprimir cierre de caja en impresora térmica
+    """
+    try:
+        # Obtener la caja
+        caja = get_object_or_404(Caja, id=pk)
+        empleado = caja.empleado
+        fecha_cierre = caja.fecha_cierre if caja.fecha_cierre else timezone.now()
+        
+        # Crear impresora e imprimir
+        try:
+            printer = create_printer()
+            success = printer.print_cierre_caja(caja, empleado, fecha_cierre)
+            printer.close()
+            
+            if success:
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'Cierre de caja impreso correctamente'
+                })
+            else:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Error al imprimir el cierre de caja'
+                }, status=500)
+        
+        except Exception as printer_error:
+            # Error específico de la impresora
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Error de impresora: {str(printer_error)}\nVerifica la configuración en settings.py'
+            }, status=500)
+    
+    except Exception as e:
+        # Error general
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Error: {str(e)}'
+        }, status=500)

@@ -43,6 +43,7 @@ urlpatterns = [
     path('caja/<int:pk>/ventas/', views.ventas, name='ventas'),
 
     path('cierre_caja_pdf/<int:pk>/', views.cierre_caja_pdf, name='cierre_caja_pdf'),
+    path('caja/<int:pk>/imprimir-termica/', views.imprimir_cierre_caja_termica, name='imprimir_cierre_caja_termica'),
 
 
 
@@ -94,6 +95,32 @@ urlpatterns = [
     # APIs nuevas para empleados
     path('api/ventas-empleados/', views.ventas_por_empleado, name='ventas_por_empleado'),
     path('api/ranking-empleados/', views.ranking_empleados, name='ranking_empleados'),
+
+
+
+
+
+    # GESTIÓN DE RANGOS DE PUNTOS
+    path('puntos/rangos/', views.rangos_puntos, name='rangos_puntos'),
+    path('puntos/rangos/nuevo/', views.nuevo_rango_puntos, name='nuevo_rango_puntos'),
+    path('puntos/rangos/modificar/<int:pk>/', views.modificar_rango_puntos, name='modificar_rango_puntos'),
+    path('puntos/rangos/eliminar/<int:pk>/', views.eliminar_rango_puntos, name='eliminar_rango_puntos'),
+    
+    # Consulta y Ajuste de Puntos
+    path('clientes/<int:cliente_id>/puntos/', views.consultar_puntos_cliente, name='consultar_puntos_cliente'),
+    path('clientes/<int:cliente_id>/ajustar-puntos/', views.ajustar_puntos_cliente, name='ajustar_puntos_cliente'),
+    
+    # Reportes
+    path('puntos/reporte/', views.reporte_puntos, name='reporte_puntos'),
+    
+
+    # Reset Masivo (NUEVO)
+    path('puntos/resetear-masivo/', views.resetear_puntos_masivo, name='resetear_puntos_masivo'),
+
+    # API (opcional - para AJAX)
+    path('api/whatsapp-link/<int:cliente_id>/', views.api_whatsapp_link_cliente, name='api_whatsapp_link'),
+
+
+    # Registro público (sin login requerido)
+    path('registro/', views.registro_publico_cliente, name='registro_publico'),
 ]
-
-

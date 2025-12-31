@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Ajustar Puntos - {{ cliente.nombre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cliente-header {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+    }
+    
+    .puntos-display {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        color: #7c3aed;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .tipo-ajuste {
+        transition: all 0.3s ease;
+    }
+    
+    .tipo-ajuste:not(:checked) + label {
+        opacity: 0.6;
+        transform: scale(0.95);
+    }
+    
+    .tipo-ajuste:checked + label {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    }
+    
+    .btn-agregar {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        color: white;
+    }
+    
+    .btn-agregar:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .btn-restar {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border: none;
+        color: white;
+    }
+    
+    .btn-restar:hover {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .preview-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 15px;
+        padding: 2rem;
+    }
+    
+    .motivo-chip {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f1f5f9;
+        border: 2px solid #e2e8f0;
+    }
+    
+    .motivo-chip:hover {
+        background: #8b5cf6;
+        color: white;
+        border-color: #8b5cf6;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="page-title">
+        <i class="fas fa-edit me-2"></i>Ajustar Puntos
+    </h1>
+    <p class="text-muted">Modificar puntos del cliente manualmente</p>
+</div>
+
+<div class="content-section">
+    <!-- Header del cliente -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cliente-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3 class="mb-2">
+                            <i class="fas fa-user-circle me-2"></i>
+                            {{ cliente.nombre }} {{ cliente.apellido }}
+                        </h3>
+                        <p class="mb-0">
+                            <i class="fas fa-phone me-2"></i>{{ cliente.telefono }} | 
+                            <i class="fas fa-id-card me-2"></i>DNI: {{ cliente.dni }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="puntos-display">
+                            <div class="display-4 fw-bold mb-0">
+                                <i class="fas fa-star text-warning"></i> {{ cliente.puntos_actuales }}
+                            </div>
+                            <small class="text-muted">Puntos actuales</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <form method="POST" id="formAjuste">
+        {% csrf_token %}
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <!-- Tipo de ajuste -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-list-check me-2"></i>Tipo de Ajuste
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <input type="radio" class="btn-check tipo-ajuste" name="tipo" id="tipo_agregar" value="agregar" checked>
+                                <label class="btn btn-agregar w-100 py-3" for="tipo_agregar">
+                                    <i class="fas fa-plus-circle fa-2x d-block mb-2"></i>
+                                    <strong>Agregar Puntos</strong>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <input type="radio" class="btn-check tipo-ajuste" name="tipo" id="tipo_restar" value="restar">
+                                <label class="btn btn-restar w-100 py-3" for="tipo_restar">
+                                    <i class="fas fa-minus-circle fa-2x d-block mb-2"></i>
+                                    <strong>Restar Puntos</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cantidad -->
+                <div class="card border-0 shadow-sm mt-3">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-hashtag me-2"></i>Cantidad de Puntos
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <input type="number" 
+                               name="cantidad" 
+                               id="cantidad"
+                               class="form-control form-control-lg text-center fs-1" 
+                               required
+                               min="1"
+                               placeholder="0"
+                               style="border: 2px solid #8b5cf6; font-weight: bold; color: #7c3aed;">
+                        <small class="form-text text-muted d-block mt-2 text-center" id="max-info">
+                            Máximo disponible: {{ cliente.puntos_actuales }} puntos
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Descripción -->
+                <div class="card border-0 shadow-sm mt-3">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-comment-dots me-2"></i>Descripción/Motivo
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <textarea name="descripcion" 
+                                  id="descripcion" 
+                                  class="form-control" 
+                                  rows="3" 
+                                  required
+                                  placeholder="Ej: Bonificación por cumpleaños"></textarea>
+                        
+                        <!-- Motivos rápidos -->
+                        <div class="mt-3">
+                            <label class="form-label small text-muted">MOTIVOS FRECUENTES:</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge motivo-chip px-3 py-2" data-desc="Bonificación especial">
+                                    <i class="fas fa-gift me-1"></i>Bonificación
+                                </span>
+                                <span class="badge motivo-chip px-3 py-2" data-desc="Corrección por error en sistema">
+                                    <i class="fas fa-tools me-1"></i>Corrección
+                                </span>
+                                <span class="badge motivo-chip px-3 py-2" data-desc="Regalo por cumpleaños">
+                                    <i class="fas fa-birthday-cake me-1"></i>Cumpleaños
+                                </span>
+                                <span class="badge motivo-chip px-3 py-2" data-desc="Canje de puntos en caja">
+                                    <i class="fas fa-exchange-alt me-1"></i>Canje
+                                </span>
+                                <span class="badge motivo-chip px-3 py-2" data-desc="Ajuste administrativo">
+                                    <i class="fas fa-user-shield me-1"></i>Ajuste Admin
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calculator me-2"></i>Vista Previa del Cálculo
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="preview-card text-center">
+                            <div class="row g-4">
+                                <div class="col-4">
+                                    <div class="mb-2 text-muted fw-semibold">ACTUAL</div>
+                                    <div class="display-4 fw-bold text-primary">
+                                        {{ cliente.puntos_actuales }}
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="mb-2 text-muted fw-semibold">OPERACIÓN</div>
+                                    <div class="display-4 fw-bold" id="operacion-simbolo" style="color: #10b981;">
+                                        +
+                                    </div>
+                                    <div class="display-5 fw-bold mt-2" id="cantidad-preview">0</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="mb-2 text-muted fw-semibold">RESULTADO</div>
+                                    <div class="display-4 fw-bold" id="resultado-preview" style="color: #10b981;">
+                                        {{ cliente.puntos_actuales }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4">
+                            
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Importante:</strong> Este ajuste quedará registrado en el historial del cliente.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{% url 'consultar_puntos_cliente' cliente.id %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-lg" id="btnAjustar" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; border: none;">
+                                <i class="fas fa-check me-2"></i>Aplicar Ajuste
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoAgregar = document.getElementById('tipo_agregar');
+    const tipoRestar = document.getElementById('tipo_restar');
+    const cantidadInput = document.getElementById('cantidad');
+    const descripcionTextarea = document.getElementById('descripcion');
+    const maxInfo = document.getElementById('max-info');
+    const puntosActuales = {{ cliente.puntos_actuales }};
+    
+    // Actualizar vista previa
+    function actualizarPreview() {
+        const cantidad = parseInt(cantidadInput.value) || 0;
+        const operacionSimbolo = document.getElementById('operacion-simbolo');
+        const cantidadPreview = document.getElementById('cantidad-preview');
+        const resultadoPreview = document.getElementById('resultado-preview');
+        
+        cantidadPreview.textContent = cantidad;
+        
+        if (tipoAgregar.checked) {
+            operacionSimbolo.textContent = '+';
+            operacionSimbolo.style.color = '#10b981';
+            const resultado = puntosActuales + cantidad;
+            resultadoPreview.textContent = resultado;
+            resultadoPreview.style.color = '#10b981';
+        } else {
+            operacionSimbolo.textContent = '-';
+            operacionSimbolo.style.color = '#ef4444';
+            const resultado = puntosActuales - cantidad;
+            resultadoPreview.textContent = resultado;
+            resultadoPreview.style.color = resultado >= 0 ? '#ef4444' : '#dc2626';
+        }
+    }
+    
+    // Cambiar límites según el tipo
+    function actualizarLimites() {
+        if (tipoRestar.checked) {
+            cantidadInput.max = puntosActuales;
+            maxInfo.style.display = 'block';
+        } else {
+            cantidadInput.removeAttribute('max');
+            maxInfo.style.display = 'none';
+        }
+        actualizarPreview();
+    }
+    
+    tipoAgregar.addEventListener('change', actualizarLimites);
+    tipoRestar.addEventListener('change', actualizarLimites);
+    cantidadInput.addEventListener('input', actualizarPreview);
+    
+    // Motivos frecuentes
+    document.querySelectorAll('.motivo-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            descripcionTextarea.value = this.dataset.desc;
+            descripcionTextarea.focus();
+        });
+    });
+    
+    // Validación antes de enviar
+    document.getElementById('formAjuste').addEventListener('submit', function(e) {
+        const cantidad = parseInt(cantidadInput.value);
+        
+        if (tipoRestar.checked && cantidad > puntosActuales) {
+            e.preventDefault();
+            alert(`No se puede restar ${cantidad} puntos. El cliente solo tiene ${puntosActuales} puntos disponibles.`);
+            return false;
+        }
+        
+        const confirmMsg = tipoAgregar.checked 
+            ? `¿Confirma agregar ${cantidad} puntos a {{ cliente.nombre }} {{ cliente.apellido }}?`
+            : `¿Confirma restar ${cantidad} puntos a {{ cliente.nombre }} {{ cliente.apellido }}?`;
+        
+        if (!confirm(confirmMsg)) {
+            e.preventDefault();
+            return false;
+        }
+        
+        const btnAjustar = document.getElementById('btnAjustar');
+        btnAjustar.disabled = true;
+        btnAjustar.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
+    });
+    
+    // Inicializar
+    actualizarLimites();
+});
+</script>
+{% endblock %}

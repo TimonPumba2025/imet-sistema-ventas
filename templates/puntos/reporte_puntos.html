@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Reporte de Puntos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .kpi-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">
+                <i class="fas fa-chart-line me-2"></i>Reporte del Sistema de Puntos
+            </h1>
+            <p class="text-muted">Estadísticas y métricas del programa de fidelización</p>
+        </div>
+        <!-- Botón Reset Mensual -->
+        <button type="button" 
+                class="btn btn-lg"
+                data-bs-toggle="modal" 
+                data-bs-target="#resetModal"
+                style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; color: white; font-weight: 600;">
+            <i class="fas fa-sync-alt me-2"></i>Reset Mensual de Puntos
+        </button>
+    </div>
+</div>
+
+<div class="content-section">
+    
+    <!-- KPIs Principales -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card kpi-card shadow" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                <div class="card-body text-white text-center p-4">
+                    <div class="kpi-icon mx-auto mb-3" style="background: rgba(255,255,255,0.2);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h6 class="opacity-75 mb-2">CLIENTES CON PUNTOS</h6>
+                    <h1 class="display-3 mb-0 fw-bold">{{ total_clientes_con_puntos }}</h1>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card kpi-card shadow" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                <div class="card-body text-white text-center p-4">
+                    <div class="kpi-icon mx-auto mb-3" style="background: rgba(255,255,255,0.2);">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h6 class="opacity-75 mb-2">PUNTOS DISPONIBLES</h6>
+                    <h1 class="display-3 mb-0 fw-bold">{{ total_puntos_circulacion|floatformat:0 }}</h1>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card kpi-card shadow" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                <div class="card-body text-white text-center p-4">
+                    <div class="kpi-icon mx-auto mb-3" style="background: rgba(255,255,255,0.2);">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h6 class="opacity-75 mb-2">PUNTOS HISTÓRICOS</h6>
+                    <h1 class="display-3 mb-0 fw-bold">{{ total_puntos_historicos|floatformat:0 }}</h1>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card kpi-card shadow" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);">
+                <div class="card-body text-white text-center p-4">
+                    <div class="kpi-icon mx-auto mb-3" style="background: rgba(255,255,255,0.2);">
+                        <i class="fas fa-sliders-h"></i>
+                    </div>
+                    <h6 class="opacity-75 mb-2">RANGOS ACTIVOS</h6>
+                    <h1 class="display-3 mb-0 fw-bold">{{ rangos_activos.count }}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Clientes y Rangos -->
+    <div class="row g-4 mb-4">
+        <!-- Top 10 Clientes -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-award text-warning me-2"></i>
+                        Top 10 Clientes
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if top_clientes %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 py-3 ps-4">#</th>
+                                    <th class="border-0 py-3">Cliente</th>
+                                    <th class="border-0 py-3 text-end">Puntos</th>
+                                    <th class="border-0 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cliente in top_clientes %}
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        {% if forloop.counter == 1 %}
+                                            <i class="fas fa-trophy text-warning fa-lg"></i>
+                                        {% elif forloop.counter == 2 %}
+                                            <i class="fas fa-medal" style="color: silver;"></i>
+                                        {% elif forloop.counter == 3 %}
+                                            <i class="fas fa-medal" style="color: #CD7F32;"></i>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ forloop.counter }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="fw-semibold">{{ cliente.nombre }} {{ cliente.apellido }}</div>
+                                        <small class="text-muted">{{ cliente.telefono }}</small>
+                                    </td>
+                                    <td class="py-3 text-end">
+                                        <span class="badge bg-success px-3 py-2 fs-6">
+                                            <i class="fas fa-star me-1"></i>{{ cliente.puntos_actuales }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="btn-group" role="group">
+                                            <!-- Botón WhatsApp -->
+                                            {% if cliente.telefono %}
+                                            <a href="https://wa.me/54{{ cliente.telefono }}?text=🎉%20¡FELICITACIONES%20{{ cliente.nombre|urlencode }}!%20🎉%0A%0A¡Eres%20uno%20de%20nuestros%20clientes%20VIP%20este%20mes!%20🏆%0A%0ATienes%20acumulados%20*{{ cliente.puntos_actuales }}%20puntos*%20y%20tenemos%20un%20PREMIO%20especial%20para%20ti.%20🎁✨%0A%0A¡Acércate%20a%20canjear%20tus%20puntos%20y%20recibe%20tu%20sorpresa!%20💝%0A%0A¡Te%20esperamos!%20😊" 
+                                               class="btn btn-sm"
+                                               target="_blank"
+                                               rel="noopener noreferrer"
+                                               title="Notificar premio al ganador"
+                                               style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; border: none;">
+                                                <i class="fas fa-trophy"></i>
+                                            </a>
+                                            {% endif %}
+                                            <!-- Botón Ver -->
+                                            <a href="{% url 'consultar_puntos_cliente' cliente.id %}" 
+                                               class="btn btn-sm btn-outline-primary"
+                                               title="Ver historial">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Sin clientes con puntos</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Rangos Activos -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-sliders-h text-primary me-2"></i>
+                        Rangos Activos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if rangos_activos %}
+                    <div class="list-group list-group-flush">
+                        {% for rango in rangos_activos %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                            <div>
+                                <div class="fw-semibold mb-1">
+                                    <span class="badge" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                                        ${{ rango.monto_minimo|floatformat:0 }}
+                                    </span>
+                                    <span class="mx-1">-</span>
+                                    <span class="badge" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                                        ${{ rango.monto_maximo|floatformat:0 }}
+                                    </span>
+                                </div>
+                                <small class="text-muted">Rango de compra</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-warning text-dark px-3 py-2 fs-6">
+                                    <i class="fas fa-star me-1"></i>{{ rango.puntos_otorgados }} pts
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'rangos_puntos' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-cog me-2"></i>Gestionar Rangos
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <p class="text-muted mb-3">No hay rangos configurados</p>
+                        <a href="{% url 'nuevo_rango_puntos' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Crear Rango
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas Adicionales -->
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calculator text-info me-2"></i>
+                        Métricas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="text-muted small mb-1">PROMEDIO POR CLIENTE</label>
+                        <h3 class="mb-0" style="color: #8b5cf6;">
+                            {% if total_clientes_con_puntos > 0 %}
+                                {% widthratio total_puntos_circulacion total_clientes_con_puntos 1 %} pts
+                            {% else %}
+                                0 pts
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div>
+                        <label class="text-muted small mb-1">TASA DE USO</label>
+                        <h3 class="mb-0 text-success">
+                            {% if total_puntos_historicos > 0 %}
+                                {% widthratio total_puntos_circulacion total_puntos_historicos 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        Consejos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0 small">
+                        <li class="mb-2">Revisa periódicamente el top de clientes</li>
+                        <li class="mb-2">Bonifica a los clientes más fieles</li>
+                        <li class="mb-2">Ajusta los rangos según comportamiento</li>
+                        <li>Promociona el programa de puntos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog text-primary me-2"></i>
+                        Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'rangos_puntos' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sliders-h me-2"></i>Gestionar Rangos
+                        </a>
+                        <a href="{% url 'clientes' %}" class="btn btn-outline-success">
+                            <i class="fas fa-users me-2"></i>Ver Clientes
+                        </a>
+                        <a href="{% url 'nuevo_rango_puntos' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-plus me-2"></i>Nuevo Rango
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .content-section > .row {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<!-- Modal de Confirmación para Reset -->
+<div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    ⚠️ CONFIRMAR RESET MENSUAL
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger mb-3">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-radiation me-2"></i>
+                        ¡ATENCIÓN! Esta acción es IRREVERSIBLE
+                    </h5>
+                </div>
+                
+                <p class="fw-bold mb-3">Esta acción hará lo siguiente:</p>
+                <ul class="mb-3">
+                    <li>✅ Reseteará los <strong>puntos actuales</strong> de TODOS los clientes a 0</li>
+                    <li>✅ Mantendrá el <strong>historial acumulado</strong> de puntos</li>
+                    <li>✅ Registrará esta acción en el historial con tipo "VENCIDO"</li>
+                    <li>✅ Se guardará tu usuario como responsable</li>
+                </ul>
+                
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>¿Cuándo hacer el reset?</strong>
+                    <br>
+                    Se recomienda al <strong>inicio de cada mes</strong> para comenzar un nuevo período de acumulación.
+                </div>
+
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <h6 class="mb-2">📊 Estadísticas actuales:</h6>
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="fw-bold text-primary fs-4">{{ total_clientes_con_puntos }}</div>
+                                <small class="text-muted">Clientes afectados</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="fw-bold text-success fs-4">{{ total_puntos_circulacion|floatformat:0 }}</div>
+                                <small class="text-muted">Puntos a resetear</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-danger fw-bold mb-0">
+                    <i class="fas fa-hand-paper me-2"></i>
+                    ¿Estás completamente seguro de continuar?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <form method="POST" action="{% url 'resetear_puntos_masivo' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="fas fa-sync-alt me-2"></i>SÍ, RESETEAR TODOS LOS PUNTOS
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

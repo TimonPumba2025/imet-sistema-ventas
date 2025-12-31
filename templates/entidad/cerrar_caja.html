@@ -46,10 +46,18 @@
         </div>
         <div class="modal-footer py-2" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
             
-            <a href="{% url 'cierre_caja_pdf' caja.id %}" class="btn btn-info btn-sm me-2" target="_blank">
+            <!-- BOTÓN NUEVO: Impresora Térmica -->
+            <button type="button" class="btn btn-success btn-sm me-2" onclick="imprimirTermica({{ caja.id }})">
                 <i class="fas fa-print me-1"></i>
-                Imprimir
+                Imprimir Térmica
+            </button>
+            
+            <!-- Botón original PDF -->
+            <a href="{% url 'cierre_caja_pdf' caja.id %}" class="btn btn-info btn-sm me-2" target="_blank">
+                <i class="fas fa-file-pdf me-1"></i>
+                Ver PDF
             </a>
+            
             <button type="button" class="btn btn-secondary btn-sm me-2" data-bs-dismiss="modal">
                 <i class="fas fa-times me-1"></i>
                 Cancelar
@@ -117,6 +125,23 @@
     }
     
     /* Botones */
+    .btn-success {
+        background: linear-gradient(45deg, #10b981, #059669) !important;
+        border: none !important;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3) !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        transition: all 0.3s ease !important;
+        color: white !important;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(45deg, #059669, #047857) !important;
+        box-shadow: 0 3px 6px rgba(16, 185, 129, 0.4) !important;
+        transform: translateY(-1px) !important;
+        color: white !important;
+    }
+    
     .btn-info {
         background: linear-gradient(45deg, #06b6d4, #0891b2) !important;
         border: none !important;
@@ -184,3 +209,34 @@
         border-top: 1px solid #e2e8f0;
     }
 </style>
+
+<script>
+function imprimirTermica(cajaId) {
+    const btn = event.target;
+    const textoOriginal = btn.innerHTML;
+    
+    // Cambiar botón a estado "imprimiendo"
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Imprimiendo...';
+    
+    // Hacer petición AJAX
+    fetch(`/caja/${cajaId}/imprimir-termica/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('✅ ' + data.message);
+            } else {
+                alert('❌ ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('❌ Error de conexión con la impresora. Verifica que esté conectada.');
+        })
+        .finally(() => {
+            // Restaurar botón
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+        });
+}
+</script>

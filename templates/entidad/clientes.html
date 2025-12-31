@@ -43,6 +43,49 @@
         font-size: 0.9rem;
     }
     
+    /* === NUEVOS ESTILOS PARA PUNTOS === */
+    .puntos-badge {
+        background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        display: inline-block;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .puntos-badge:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+    }
+    
+    .btn-whatsapp {
+        background: linear-gradient(45deg, #25d366, #128c7e);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-whatsapp:hover {
+        background: linear-gradient(45deg, #128c7e, #075e54);
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .btn-puntos {
+        background: linear-gradient(45deg, #fbbf24, #f59e0b);
+        border: none;
+        color: white;
+    }
+    
+    .btn-puntos:hover {
+        background: linear-gradient(45deg, #f59e0b, #d97706);
+        color: white;
+    }
+    /* ================================== */
+    
     .btn-nuevo-cliente {
         background: linear-gradient(45deg, #8b5cf6, #7c3aed);
         border: none;
@@ -107,6 +150,11 @@
                     <th><i class="fas fa-user me-1"></i>Cliente</th>
                     <th><i class="fas fa-envelope me-1"></i>Email</th>
                     <th><i class="fas fa-phone me-1"></i>Teléfono</th>
+                    <!-- === NUEVA COLUMNA DE PUNTOS === -->
+                    <th class="text-center">
+                        <i class="fas fa-star me-1" style="color: #fbbf24;"></i>Puntos
+                    </th>
+                    <!-- ================================ -->
                     <th class="text-center"><i class="fas fa-cogs me-1"></i>Opciones</th>
                 </tr>
             </thead>
@@ -159,8 +207,39 @@
                             </span>
                         {% endif %}
                     </td>
+                    
+                    <!-- === NUEVA CELDA DE PUNTOS === -->
+                    <td class="text-center">
+                        <a href="{% url 'consultar_puntos_cliente' cliente.id %}" 
+                           class="puntos-badge"
+                           title="Ver historial de puntos">
+                            <i class="fas fa-star me-1"></i>{{ cliente.puntos_actuales|default:0 }}
+                        </a>
+                    </td>
+                    <!-- ============================== -->
+                    
                     <td class="text-center">
                         <div class="btn-group" role="group">
+                            <!-- === BOTÓN DE WHATSAPP === -->
+                            {% if cliente.telefono %}
+                            <a href="https://wa.me/54{{ cliente.telefono }}?text=¡Hola%20{{ cliente.nombre|urlencode }}!%20%0A%0ATienes%20*{{ cliente.puntos_actuales|default:0 }}%20puntos*%20disponibles.%0A%0A¡Ven%20a%20canjearlos!%20" 
+                               class="btn btn-whatsapp btn-sm" 
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               title="Notificar puntos por WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                            {% endif %}
+                            <!-- ========================= -->
+                            
+                            <!-- === BOTÓN VER PUNTOS === -->
+                            <a href="{% url 'consultar_puntos_cliente' cliente.id %}" 
+                               class="btn btn-puntos btn-sm"
+                               title="Ver historial de puntos">
+                                <i class="fas fa-star"></i>
+                            </a>
+                            <!-- ======================== -->
+                            
                             <button type="button" 
                                     class="btn btn-warning btn-sm" 
                                     title="Editar cliente {{ cliente.nombre }} {{ cliente.apellido }}" 
@@ -187,6 +266,19 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- === INFO ADICIONAL SOBRE PUNTOS === -->
+    <div class="alert alert-info mt-3">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Funciones de puntos:</strong>
+        <ul class="mb-0 mt-2">
+            <li><i class="fab fa-whatsapp text-success"></i> Click en WhatsApp para notificar puntos al cliente</li>
+            <li><i class="fas fa-star" style="color: #fbbf24;"></i> Click en la estrella amarilla para ver historial completo</li>
+            <li><i class="fas fa-gift text-primary"></i> Los puntos se asignan automáticamente en cada venta</li>
+        </ul>
+    </div>
+    <!-- =================================== -->
+    
     {% else %}
     <div class="alert alert-info text-center">
         <div class="mb-3">
@@ -242,7 +334,6 @@
                 if (response.success) {
                     $('#eliminacion').modal('hide');
                     
-                    // Mostrar mensaje de éxito
                     $('body').prepend(
                         '<div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert">' +
                         '<i class="fas fa-check-circle me-2"></i>Cliente eliminado correctamente' +
@@ -280,7 +371,6 @@
                 if (response.success) {
                     $('#clienteModal').modal('hide');
                     
-                    // Mostrar mensaje de éxito
                     const mensaje = form.find('input[name="nombre"]').val() ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente';
                     $('body').prepend(
                         '<div class="alert alert-success alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert">' +

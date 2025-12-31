@@ -795,6 +795,27 @@
                     <a href="{% url 'clientes' %}" class="submenu-item">Lista de Clientes</a>
                 </div>
             </div>
+
+            <!-- ============ NUEVA SECCIÓN: SISTEMA DE PUNTOS ============ -->
+            {% if perms.auth.add_user %}
+            <div class="nav-item">
+                <a href="#" class="nav-link" onclick="toggleSubmenu(this)">
+                    <div class="nav-icon"><i class="fas fa-star"></i></div>
+                    <span class="nav-text">Sistema de Puntos</span>
+                    <span class="nav-arrow">▼</span>
+                </a>
+                <div class="submenu">
+                    <a href="{% url 'rangos_puntos' %}" class="submenu-item">
+                        <i class="fas fa-sliders-h me-2"></i>Rangos de Puntos
+                    </a>
+                    <a href="{% url 'reporte_puntos' %}" class="submenu-item">
+                        <i class="fas fa-chart-line me-2"></i>Reportes
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            <!-- ========================================================== -->
+            
             {% if perms.auth.add_user %}
             <div class="nav-item">
                 <a href="#" class="nav-link" onclick="toggleSubmenu(this)">

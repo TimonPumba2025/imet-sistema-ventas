@@ -976,23 +976,114 @@
 
                 <div class="resumen-grid" style="margin: 20px; margin-top: 20px;">
                     <!-- Cliente -->
-                    <div class="grupo-resumen">
-                        <div class="grupo-titulo">
-                            <i class="fas fa-user"></i> Cliente
+                <div class="grupo-resumen">
+                    <div class="grupo-titulo">
+                        <i class="fas fa-user"></i> Cliente
+                    </div>
+                    <div class="grupo-contenido">
+                        
+                        <!-- Buscador Simple -->
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="text" 
+                                id="buscar_cliente_input" 
+                                class="form-control" 
+                                placeholder="Escribe DNI, nombre o apellido..."
+                                autocomplete="off">
                         </div>
-                        <div class="grupo-contenido">
-                            <div class="form-group">
-                                <select id="cliente" name="cliente" class="form-control select2-clients">
-                                    <option value="">Seleccionar cliente...</option>
-                                    {% for cliente in clientes %}
-                                        <option value="{{ cliente.id }}">
-                                            {{ cliente.dni }} | {{ cliente.nombre|upper }} {{ cliente.apellido|upper }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
+                        
+                        <!-- Resultados de búsqueda -->
+                        <div id="resultados_busqueda" style="display: none; max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px;">
+                            <!-- Los resultados aparecerán aquí -->
+                        </div>
+                        
+                        <!-- Cliente Seleccionado -->
+                        <div id="cliente_seleccionado_card" style="display: none; background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <div style="font-weight: 600; color: #1e40af; margin-bottom: 4px;">
+                                        <i class="fas fa-user-check me-1"></i>
+                                        <span id="cliente_nombre_mostrar"></span>
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: #6b7280;">
+                                        <i class="fas fa-id-card me-1"></i>
+                                        DNI: <span id="cliente_dni_mostrar"></span>
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: #6b7280;">
+                                        <i class="fas fa-phone me-1"></i>
+                                        <span id="cliente_tel_mostrar"></span>
+                                    </div>
+                                </div>
+                                <button type="button" 
+                                        onclick="limpiarClienteSeleccionado()"
+                                        style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.75rem;">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
                         </div>
+                        
+                        <!-- Select Oculto (para enviar al servidor) -->
+                        <select id="cliente" name="cliente" style="display: none;">
+                            <option value="">Sin seleccionar</option>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}" 
+                                        data-dni="{{ cliente.dni }}"
+                                        data-nombre="{{ cliente.nombre }}"
+                                        data-apellido="{{ cliente.apellido }}"
+                                        data-telefono="{{ cliente.telefono|default:'' }}">
+                                    {{ cliente.dni }} | {{ cliente.nombre }} {{ cliente.apellido }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        
+                        <!-- Botón Nuevo Cliente -->
+                        <button type="button" 
+                                onclick="abrirNuevoCliente()" 
+                                class="btn-nuevo-cliente" 
+                                style="width: 100%; font-size: 0.75rem; padding: 6px 10px;">
+                            <i class="fas fa-user-plus me-1"></i> Nuevo Cliente
+                        </button>
+                        
                     </div>
+                </div>
+
+<style>
+/* Estilos para los resultados de búsqueda */
+.resultado-cliente-item {
+    padding: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.resultado-cliente-item:hover {
+    background: #f0f9ff;
+}
+
+.resultado-cliente-item:last-child {
+    border-bottom: none;
+}
+
+.resultado-nombre {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.resultado-dni {
+    background: #e5e7eb;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-right: 8px;
+    color: #374151;
+    font-weight: 600;
+}
+
+.resultado-detalles {
+    color: #6b7280;
+    font-size: 0.8rem;
+}
+</style>
 
                     <!-- Pago -->
                     <div class="grupo-resumen">
@@ -2157,6 +2248,174 @@
             }
         }
     });
+
+
+    // ===================================================
+// BÚSQUEDA SIMPLE DE CLIENTES
+// Agregar este código AL FINAL de tu <script>
+// ===================================================
+
+// Almacenar todos los clientes
+let todosLosClientes = [];
+
+// Cargar clientes cuando carga la página
+$(document).ready(function() {
+    cargarTodosLosClientes();
+    configurarBuscadorCliente();
+});
+
+// Función 1: Cargar todos los clientes del select
+function cargarTodosLosClientes() {
+    todosLosClientes = [];
+    
+    $('#cliente option').each(function() {
+        const valor = $(this).val();
+        if (valor) { // Saltar opción vacía
+            const dni = String($(this).data('dni') || '');
+            const nombre = String($(this).data('nombre') || '');
+            const apellido = String($(this).data('apellido') || '');
+            const telefono = String($(this).data('telefono') || '');
+            
+            todosLosClientes.push({
+                id: valor,
+                dni: dni,
+                nombre: nombre,
+                apellido: apellido,
+                telefono: telefono,
+                textoCompleto: (dni + ' ' + nombre + ' ' + apellido).toLowerCase()
+            });
+        }
+    });
+    
+    console.log('✅ Clientes cargados:', todosLosClientes.length);
+    console.log('📋 Ejemplo primer cliente:', todosLosClientes[0]);
+}
+
+// Función 2: Configurar el buscador
+function configurarBuscadorCliente() {
+    let timeoutBusqueda = null;
+    
+    $('#buscar_cliente_input').on('input', function() {
+        const termino = $(this).val().trim();
+        
+        // Cancelar búsqueda anterior
+        if (timeoutBusqueda) {
+            clearTimeout(timeoutBusqueda);
+        }
+        
+        // Si está vacío, ocultar resultados
+        if (termino.length < 2) {
+            $('#resultados_busqueda').hide().html('');
+            return;
+        }
+        
+        // Esperar 300ms después de que deje de escribir
+        timeoutBusqueda = setTimeout(function() {
+            buscarYMostrarClientes(termino);
+        }, 300);
+    });
+    
+    // Limpiar al presionar ESC
+    $('#buscar_cliente_input').on('keydown', function(e) {
+        if (e.key === 'Escape') {
+            $(this).val('');
+            $('#resultados_busqueda').hide().html('');
+        }
+    });
+}
+
+// Función 3: Buscar y mostrar clientes
+function buscarYMostrarClientes(termino) {
+    const terminoBusqueda = termino.toLowerCase();
+    console.log('🔍 Buscando:', terminoBusqueda);
+    
+    // Filtrar clientes
+    const resultados = todosLosClientes.filter(function(cliente) {
+        return cliente.dni.includes(terminoBusqueda) ||
+               cliente.nombre.toLowerCase().includes(terminoBusqueda) ||
+               cliente.apellido.toLowerCase().includes(terminoBusqueda) ||
+               cliente.textoCompleto.includes(terminoBusqueda);
+    });
+    
+    console.log('📋 Resultados encontrados:', resultados.length);
+    
+    // Mostrar resultados
+    if (resultados.length > 0) {
+        let html = '';
+        
+        resultados.forEach(function(cliente) {
+            html += `
+                <div class="resultado-cliente-item" onclick="seleccionarClienteSimple('${cliente.id}')">
+                    <div class="resultado-nombre">
+                        <span class="resultado-dni">${cliente.dni}</span>
+                        ${cliente.nombre} ${cliente.apellido}
+                    </div>
+                    <div class="resultado-detalles">
+                        <i class="fas fa-phone me-1"></i>${cliente.telefono || 'Sin teléfono'}
+                    </div>
+                </div>
+            `;
+        });
+        
+        $('#resultados_busqueda').html(html).slideDown(200);
+    } else {
+        $('#resultados_busqueda').html(`
+            <div style="padding: 15px; text-align: center; color: #6b7280;">
+                <i class="fas fa-user-times"></i> No se encontraron clientes
+            </div>
+        `).slideDown(200);
+    }
+}
+
+// Función 4: Seleccionar cliente
+function seleccionarClienteSimple(clienteId) {
+    console.log('✅ Cliente seleccionado ID:', clienteId);
+    
+    // Buscar el cliente en el array
+    const cliente = todosLosClientes.find(function(c) {
+        return c.id === clienteId;
+    });
+    
+    if (!cliente) {
+        console.error('❌ Cliente no encontrado');
+        return;
+    }
+    
+    // Actualizar el select oculto
+    $('#cliente').val(clienteId);
+    
+    // Mostrar tarjeta de cliente seleccionado
+    $('#cliente_nombre_mostrar').text(cliente.nombre + ' ' + cliente.apellido);
+    $('#cliente_dni_mostrar').text(cliente.dni);
+    $('#cliente_tel_mostrar').text(cliente.telefono || 'Sin teléfono');
+    
+    // Mostrar tarjeta y ocultar buscador
+    $('#cliente_seleccionado_card').slideDown(300);
+    $('#buscar_cliente_input').val('').hide();
+    $('#resultados_busqueda').hide().html('');
+    
+    // Mensaje de éxito
+    mostrarAlerta('Cliente seleccionado: ' + cliente.nombre + ' ' + cliente.apellido, 'success');
+}
+
+// Función 5: Limpiar cliente seleccionado
+function limpiarClienteSeleccionado() {
+    $('#cliente').val('');
+    $('#cliente_seleccionado_card').slideUp(300);
+    $('#buscar_cliente_input').val('').show().focus();
+    $('#resultados_busqueda').hide().html('');
+}
+
+// Función 6: Abrir ventana de nuevo cliente
+function abrirNuevoCliente() {
+    const ventana = window.open('/registro/', '_blank', 'width=600,height=800');
+    
+    if (ventana) {
+        mostrarAlerta('Formulario de registro abierto. Cuando termines, recarga esta página.', 'info');
+    } else {
+        mostrarAlerta('Por favor permite las ventanas emergentes', 'warning');
+    }
+}
 </script>
 
 {% endblock %}

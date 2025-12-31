@@ -22,6 +22,90 @@
 </div>
 
 <div class="content-section">
+    
+    <!-- ============ NUEVA SECCIÓN: PUNTOS GANADOS ============ -->
+    {% if puntos_info %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);">
+                <div class="card-body text-center py-5">
+                    <!-- Ícono animado -->
+                    <div class="mb-3">
+                        <i class="fas fa-gift fa-4x text-white pulse-icon"></i>
+                    </div>
+                    
+                    <!-- Puntos ganados -->
+                    <h1 class="display-1 text-white fw-bold mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                        +{{ puntos_info.puntos_ganados }}
+                    </h1>
+                    <h3 class="text-white mb-3">PUNTOS GANADOS</h3>
+                    
+                    <!-- Info cliente -->
+                    <div class="alert alert-light d-inline-block mb-4 shadow-sm">
+                        <h5 class="mb-2">
+                            <i class="fas fa-user-circle text-warning me-2"></i>
+                            <strong>{{ puntos_info.cliente_nombre }}</strong>
+                        </h5>
+                        <p class="mb-0">
+                            ahora tiene 
+                            <span class="badge bg-warning text-dark fs-5 px-3 py-2">
+                                <i class="fas fa-star me-1"></i>{{ puntos_info.total_puntos }} puntos
+                            </span>
+                            acumulados
+                        </p>
+                    </div>
+                    
+                    <!-- Botón de WhatsApp -->
+                    {% if whatsapp_link %}
+                    <div class="d-grid gap-2 col-md-6 mx-auto mb-3">
+                        <a href="{{ whatsapp_link }}" 
+                           class="btn btn-whatsapp btn-lg shadow-lg pulse-btn"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           style="background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); border: none; color: white; font-weight: 600; font-size: 1.2rem;">
+                            <i class="fab fa-whatsapp fa-2x me-2"></i>
+                            Notificar al Cliente
+                        </a>
+                        <small class="text-white">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Se abrirá WhatsApp con el mensaje listo
+                        </small>
+                    </div>
+                    
+                    <!-- Vista previa del mensaje -->
+                    <button class="btn btn-light btn-sm" 
+                            type="button" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#previewMensaje">
+                        <i class="fas fa-eye me-1"></i> Vista Previa del Mensaje
+                    </button>
+                    
+                    <div class="collapse mt-3" id="previewMensaje">
+                        <div class="card text-start mx-auto" style="max-width: 500px;">
+                            <div class="card-body bg-light">
+                                <small class="text-muted mb-2 d-block">
+                                    <i class="fab fa-whatsapp text-success"></i> 
+                                    Mensaje:
+                                </small>
+                                <div class="bg-white p-3 rounded shadow-sm">
+                                    <p class="mb-0">
+                                        ¡Hola <strong>{{ puntos_info.cliente_nombre }}</strong>! 🎉<br><br>
+                                        Has ganado <strong>{{ puntos_info.puntos_ganados }} puntos</strong> en tu compra de <strong>${{ venta.total }}</strong>.<br><br>
+                                        Ahora tienes <strong>{{ puntos_info.total_puntos }} puntos</strong> acumulados.<br><br>
+                                        ¡Gracias por tu preferencia! 🛍️
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <!-- ======================================================= -->
+
     <!-- Información de la venta -->
     <div class="row mb-4">
         <div class="col-12">
@@ -144,6 +228,16 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-md-end">
+                        <!-- === BOTÓN VER HISTORIAL DE PUNTOS === -->
+                        {% if venta.cliente %}
+                        <a href="{% url 'consultar_puntos_cliente' venta.cliente.id %}" 
+                           class="btn btn-warning d-flex align-items-center">
+                            <i class="fas fa-star me-2"></i>
+                            Ver Puntos del Cliente
+                        </a>
+                        {% endif %}
+                        <!-- ===================================== -->
+                        
                         <a href="{% url 'detalle_venta_pdf' venta.id %}" 
                            class="btn btn-outline-secondary d-flex align-items-center" 
                            target="_blank">
@@ -167,7 +261,7 @@
     </div>
 </div>
 
-<!-- Animación de éxito -->
+<!-- Estilos y animaciones -->
 <style>
     .page-title {
         animation: slideInDown 0.6s ease-out;
@@ -188,6 +282,35 @@
     .content-section > .row:nth-child(4) {
         animation-delay: 0.6s;
     }
+    
+    /* === ANIMACIONES PARA PUNTOS === */
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+    
+    .pulse-icon {
+        animation: pulse 2s infinite;
+    }
+    
+    .pulse-btn {
+        animation: pulse 2s infinite;
+    }
+    
+    .pulse-btn:hover {
+        animation: none;
+        transform: scale(1.05);
+    }
+    
+    .btn-whatsapp:hover {
+        transform: scale(1.05) !important;
+        box-shadow: 0 8px 16px rgba(37, 211, 102, 0.4) !important;
+    }
+    /* =============================== */
     
     @keyframes slideInDown {
         from {
