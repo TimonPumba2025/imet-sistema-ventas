@@ -184,6 +184,15 @@ LOGGING = {
     },
 }
 
+
+# IMPRESORA TÉRMICA POS-80C
+THERMAL_PRINTER = {
+    'type': 'usb',
+    'paper_width': 80,  # Tu impresora es de 80mm
+    'vendor_id': 0x0483,   # ← TUS VALORES
+    'product_id': 0x5743,  # ← TUS VALORES
+}
+
 # Configuración de email (opcional, para notificaciones de errores)
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # EMAIL_HOST = 'smtp.gmail.com'
