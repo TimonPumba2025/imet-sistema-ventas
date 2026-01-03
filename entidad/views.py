@@ -2756,56 +2756,35 @@ def registro_publico_cliente(request):
 
 
 """
-VISTA MEJORADA PARA IMPRIMIR CIERRE DE CAJA
-Agregar esta función a tu archivo views.py (REEMPLAZA la anterior si ya la agregaste)
+SOLUCIÓN SIMPLE: Impresión térmica directa desde el navegador
+No necesita servicios externos ni configuraciones complejas
 """
 
+# ========================================
+# PASO 1: Actualizar views.py
+# Modificar la vista de cierre de caja para crear un formato de impresión simple
+# ========================================
+
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from .models import Caja
-from .thermal_printer_simple import create_printer
-
 
 @login_required
 def imprimir_cierre_caja_termica(request, pk):
     """
-    Imprimir cierre de caja en impresora térmica
+    Vista simple que genera HTML optimizado para impresora térmica
+    El navegador imprime directamente en la impresora predeterminada
     """
-    try:
-        # Obtener la caja
-        caja = get_object_or_404(Caja, id=pk)
-        empleado = caja.empleado
-        fecha_cierre = caja.fecha_cierre if caja.fecha_cierre else timezone.now()
-        
-        # Crear impresora e imprimir
-        try:
-            printer = create_printer()
-            success = printer.print_cierre_caja(caja, empleado, fecha_cierre)
-            printer.close()
-            
-            if success:
-                return JsonResponse({
-                    'status': 'success',
-                    'message': 'Cierre de caja impreso correctamente'
-                })
-            else:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Error al imprimir el cierre de caja'
-                }, status=500)
-        
-        except Exception as printer_error:
-            # Error específico de la impresora
-            return JsonResponse({
-                'status': 'error',
-                'message': f'Error de impresora: {str(printer_error)}\nVerifica la configuración en settings.py'
-            }, status=500)
+    caja = get_object_or_404(Caja, id=pk)
+    empleado = caja.empleado
+    fecha_cierre = caja.fecha_cierre if caja.fecha_cierre else timezone.now()
     
-    except Exception as e:
-        # Error general
-        return JsonResponse({
-            'status': 'error',
-            'message': f'Error: {str(e)}'
-        }, status=500)
+    context = {
+        'caja': caja,
+        'empleado': empleado,
+        'fecha_cierre': fecha_cierre,
+    }
+    
+    # Renderizar template optimizado para impresión térmica
+    return render(request, 'entidad/imprimir_cierre_termica.html', context)

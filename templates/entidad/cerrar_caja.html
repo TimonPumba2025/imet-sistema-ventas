@@ -46,11 +46,13 @@
         </div>
         <div class="modal-footer py-2" style="background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
             
-            <!-- BOTÓN NUEVO: Impresora Térmica -->
-            <button type="button" class="btn btn-success btn-sm me-2" onclick="imprimirTermica({{ caja.id }})">
+            <!-- BOTÓN SIMPLE: Impresora Térmica -->
+            <a href="{% url 'imprimir_cierre_caja_termica' caja.id %}" 
+               class="btn btn-success btn-sm me-2" 
+               target="_blank">
                 <i class="fas fa-print me-1"></i>
                 Imprimir Térmica
-            </button>
+            </a>
             
             <!-- Botón original PDF -->
             <a href="{% url 'cierre_caja_pdf' caja.id %}" class="btn btn-info btn-sm me-2" target="_blank">
@@ -209,34 +211,3 @@
         border-top: 1px solid #e2e8f0;
     }
 </style>
-
-<script>
-function imprimirTermica(cajaId) {
-    const btn = event.target;
-    const textoOriginal = btn.innerHTML;
-    
-    // Cambiar botón a estado "imprimiendo"
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Imprimiendo...';
-    
-    // Hacer petición AJAX
-    fetch(`/caja/${cajaId}/imprimir-termica/`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                alert('✅ ' + data.message);
-            } else {
-                alert('❌ ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('❌ Error de conexión con la impresora. Verifica que esté conectada.');
-        })
-        .finally(() => {
-            // Restaurar botón
-            btn.disabled = false;
-            btn.innerHTML = textoOriginal;
-        });
-}
-</script>
