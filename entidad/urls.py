@@ -43,6 +43,8 @@ urlpatterns = [
     path('caja/<int:pk>/ventas/', views.ventas, name='ventas'),
 
     path('cierre_caja_pdf/<int:pk>/', views.cierre_caja_pdf, name='cierre_caja_pdf'),
+    # En la sección CAJA
+    path('caja/<int:pk>/imprimir-termica/', views.imprimir_cierre_caja_termica, name='imprimir_cierre_caja_termica'),
 
 
 
