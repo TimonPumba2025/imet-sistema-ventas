@@ -98,18 +98,18 @@ Usuario: {{ empleado.username }}
    RESUMEN FINANCIERO
 ================================
 
-Monto Inicial:
-                      ${{ caja.monto_inicial|floatformat:2 }}
+Monto Inicial: ${{ caja.monto_inicial|floatformat:2 }}
+                      
 
-Total Ingresado:
-                     +${{ caja.total_ingresado|floatformat:2 }}
+Total Ingresado: +${{ caja.total_ingresado|floatformat:2 }}
+                     
 
-Total Egresado:
-                     -${{ caja.total_egresado|floatformat:2 }}
+Total Egresado: -${{ caja.total_egresado|floatformat:2 }}
+                     
 
 ================================
-      SALDO TOTAL
-     ${{ caja.saldo_total|floatformat:2 }}
+SALDO TOTAL: ${{ caja.saldo_total|floatformat:2 }}
+     
 ================================
 
 
@@ -117,12 +117,6 @@ Total Egresado:
 
 _____________________________
     Firma del Empleado
-
-
-
-
-_____________________________
-   Firma del Supervisor
 
 
 </pre>
