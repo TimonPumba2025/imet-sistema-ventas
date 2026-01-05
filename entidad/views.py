@@ -2779,12 +2779,120 @@ def imprimir_cierre_caja_termica(request, pk):
     caja = get_object_or_404(Caja, id=pk)
     empleado = caja.empleado
     fecha_cierre = caja.fecha_cierre if caja.fecha_cierre else timezone.now()
+
+    # Total efectivo: suma monto_pago_1 donde metodo_pago_1 sea efectivo + monto_pago_2 donde metodo_pago_2 sea efectivo
+    ventas_efectivo_1 = Venta.objects.filter(caja=caja, metodo_pago_1='efectivo')
+    total_efectivo_1 = sum(venta.monto_pago_1 for venta in ventas_efectivo_1)
+
+    ventas_efectivo_2 = Venta.objects.filter(caja=caja, metodo_pago_2='efectivo')
+    total_efectivo_2 = sum(venta.monto_pago_2 for venta in ventas_efectivo_2)
+
+    total_efectivo = total_efectivo_1 + total_efectivo_2
+
+    # Lo mismo para transferencia
+    ventas_transferencia_1 = Venta.objects.filter(caja=caja, metodo_pago_1='transferencia')
+    total_transferencia_1 = sum(venta.monto_pago_1 for venta in ventas_transferencia_1)
+
+    ventas_transferencia_2 = Venta.objects.filter(caja=caja, metodo_pago_2='transferencia')
+    total_transferencia_2 = sum(venta.monto_pago_2 for venta in ventas_transferencia_2)
+
+    total_transferencia = total_transferencia_1 + total_transferencia_2
+
+    # Y para tarjeta
+    ventas_tarjeta_1 = Venta.objects.filter(caja=caja, metodo_pago_1='tarjeta')
+    total_tarjeta_1 = sum(venta.monto_pago_1 for venta in ventas_tarjeta_1)
+
+    ventas_tarjeta_2 = Venta.objects.filter(caja=caja, metodo_pago_2='tarjeta')
+    total_tarjeta_2 = sum(venta.monto_pago_2 for venta in ventas_tarjeta_2)
+
+    total_tarjeta = total_tarjeta_1 + total_tarjeta_2
     
     context = {
         'caja': caja,
         'empleado': empleado,
         'fecha_cierre': fecha_cierre,
+        'total_efectivo': total_efectivo,
+        'total_transferencia': total_transferencia,
+        'total_tarjeta': total_tarjeta
     }
     
     # Renderizar template optimizado para impresión térmica
     return render(request, 'entidad/imprimir_cierre_termica.html', context)
+
+
+
+
+# ========================================
+# AGREGAR ESTA VISTA A views.py
+# ========================================
+
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+from decimal import Decimal
+from .models import Venta, DetalleVenta, DetalleVentaXProducto
+
+@login_required
+def imprimir_detalle_venta_termica(request, pk):
+    """
+    Vista para imprimir detalle de venta en impresora térmica
+    Usa la MISMA lógica que detalle_venta para calcular precios
+    """
+    venta = get_object_or_404(Venta, id=pk)
+    detalle_venta = get_object_or_404(DetalleVenta, venta=venta)
+    detalle_venta_producto_list = DetalleVentaXProducto.objects.filter(detalle_venta=detalle_venta)
+    
+    # Procesar productos - MISMA LÓGICA que detalle_venta
+    for dxp in detalle_venta_producto_list:
+        producto = dxp.producto
+        cantidad = dxp.cantidad
+        unidad = producto.unidad_medida
+        precio_actual = producto.precio
+        
+        # ✅ USAR DATOS GUARDADOS SI EXISTEN
+        if hasattr(dxp, 'precio_unitario_venta') and dxp.precio_unitario_venta > 0:
+            # Tenemos los datos guardados - usar directamente
+            precio_unitario_usado = dxp.precio_unitario_venta
+            subtotal_real = dxp.subtotal_venta
+            
+        else:
+            # Datos antiguos - calcular como antes (para compatibilidad)
+            total_sin_descuento = venta.total
+            if venta.descuento > 0:
+                total_sin_descuento = venta.total / (1 - (venta.descuento / Decimal('100')))
+            
+            # Asumir que todo el total va a este producto si es el único
+            if detalle_venta_producto_list.count() == 1:
+                subtotal_real = total_sin_descuento
+            else:
+                # Para múltiples productos sin datos guardados, distribuir equitativamente
+                subtotal_real = total_sin_descuento / detalle_venta_producto_list.count()
+            
+            # Calcular precio unitario
+            if unidad in ['kg', 'g', 'l', 'ml']:
+                cantidad_base = cantidad / Decimal('1000')
+                precio_unitario_usado = subtotal_real / cantidad_base
+            else:
+                precio_unitario_usado = subtotal_real / cantidad
+        
+        # Configurar displays para el ticket
+        if unidad in ['kg', 'g']:
+            dxp.cantidad_display = f"{cantidad}g"
+            dxp.precio_display = f"${precio_unitario_usado:.2f}/kg"
+        elif unidad in ['l', 'ml']:
+            dxp.cantidad_display = f"{cantidad}ml"
+            dxp.precio_display = f"${precio_unitario_usado:.2f}/L"
+        else:
+            dxp.cantidad_display = f"{int(cantidad)}"
+            dxp.precio_display = f"${precio_unitario_usado:.2f}"
+        
+        # Asignar valores finales
+        dxp.subtotal_producto = subtotal_real
+        dxp.precio_unitario_venta = precio_unitario_usado
+    
+    context = {
+        'venta': venta,
+        'detalle_venta': detalle_venta,
+        'dxp': detalle_venta_producto_list,
+    }
+    
+    return render(request, 'entidad/imprimir_detalle_venta_termica.html', context)

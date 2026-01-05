@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Cierre de Caja #{{ caja.id }}</title>
+    <title>Ticket Venta #{{ venta.id }}</title>
     <style>
         @page {
             size: 80mm auto;
@@ -81,42 +81,45 @@
         </button>
     </div>
 
-    <!-- Contenido del ticket usando solo texto -->
+    <!-- Contenido del ticket -->
     <pre>
 ================================
-      CIERRE DE CAJA
+      TICKET DE VENTA
 ================================
-{{ caja.sucursal.nombre|center:32 }}
-
-Caja N: {{ caja.id|stringformat:"06d" }}
-Fecha: {{ fecha_cierre|date:"d/m/Y H:i" }}{% if empleado.first_name and empleado.last_name %}
-Empleado: {{ empleado.first_name }} {{ empleado.last_name }}{% else %}
-Empleado: {{ empleado.username }}{% endif %}
-Usuario: {{ empleado.username }}
+Venta #: {{ venta.id|stringformat:"06d" }}
+Fecha: {{ venta.fecha|date:"d/m/Y H:i" }}
+{% if venta.empleado.first_name and venta.empleado.last_name %}Empleado: {{ venta.empleado.first_name }} {{ venta.empleado.last_name }}{% else %}Empleado: {{ venta.empleado.username }}{% endif %}
+{% if venta.cliente %}Cliente: {{ venta.cliente.nombre }} {{ venta.cliente.apellido }}
+Tel: {{ venta.cliente.telefono }}{% else %}Cliente: CONSUMIDOR FINAL{% endif %}
 
 ================================
-   RESUMEN FINANCIERO
+       PRODUCTOS
 ================================
-
-Monto Inicial: ${{ caja.monto_inicial|floatformat:2 }}
-                      
-
-Total Ingresado: +${{ caja.total_ingresado|floatformat:2 }}
-                     
-
-Total Egresado: -${{ caja.total_egresado|floatformat:2 }}
-
-
-Total Efectivo: ${{ total_efectivo|floatformat:2 }}
-
-
-Total Tarjeta: ${{ total_tarjeta|floatformat:2 }}
-
+{% for producto in dxp %}
+{{ producto.producto.nombre|truncatechars:30 }}{% if producto.producto.marca %}
+  {{ producto.producto.marca }}{% endif %}
+  {{ producto.cantidad_display }} x {{ producto.precio_display }}
+                      ${{ producto.subtotal_producto|floatformat:2 }}
+{% endfor %}
+================================
+{% if venta.descuento > 0 %}
+Descuento: {{ venta.descuento }}%
+--------------------------------
+{% endif %}
+      TOTAL
+     ${{ venta.total|floatformat:2 }}
 
 ================================
-SALDO TOTAL: ${{ caja.saldo_total|floatformat:2 }}
-     
+{% if venta.metodo_pago_1 %}
+METODO DE PAGO:
+{{ venta.get_metodo_pago_1_display }}: ${{ venta.monto_pago_1|floatformat:2 }}{% if venta.metodo_pago_2 and venta.monto_pago_2 > 0 %}
+{{ venta.get_metodo_pago_2_display }}: ${{ venta.monto_pago_2|floatformat:2 }}{% endif %}
+{% endif %}
 ================================
+
+  GRACIAS POR SU COMPRA!
+
+
 </pre>
 
     <script>

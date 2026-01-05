@@ -55,6 +55,8 @@ urlpatterns = [
     path('ventas/', views.ventasactual, name='ventasactual'),
     path('venta_exitosa/<int:pk>/', views.venta_exitosa, name='venta_exitosa'),
    
+    # IMPRESIÓN TÉRMICA DE DETALLE DE VENTA
+    path('venta/<int:pk>/imprimir-termica/', views.imprimir_detalle_venta_termica, name='imprimir_detalle_venta_termica'),
 
 
 
