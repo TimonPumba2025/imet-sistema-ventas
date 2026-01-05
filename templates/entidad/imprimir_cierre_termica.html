@@ -106,6 +106,9 @@ Total Ingresado: +${{ caja.total_ingresado|floatformat:2 }}
 
 Total Egresado: -${{ caja.total_egresado|floatformat:2 }}
 
+================================
+   TOTALES MEDIOS DE PAGOS
+================================
 
 Total Efectivo: ${{ total_efectivo|floatformat:2 }}
 
@@ -113,10 +116,14 @@ Total Efectivo: ${{ total_efectivo|floatformat:2 }}
 Total Tarjeta: ${{ total_tarjeta|floatformat:2 }}
 
 
+Total Transferencia: ${{ total_transferencia|floatformat:2 }}
+
+
+
 ================================
 SALDO TOTAL: ${{ caja.saldo_total|floatformat:2 }}
      
-================================
+
 </pre>
 
     <script>
