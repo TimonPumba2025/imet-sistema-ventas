@@ -83,48 +83,46 @@
 
     <!-- Contenido del ticket usando solo texto -->
     <pre>
-================================
-      CIERRE DE CAJA
-================================
-{{ caja.sucursal.nombre|center:32 }}
+        ================================
+            CIERRE DE CAJA
+        ================================
+        {{ caja.sucursal.nombre|center:32 }}
 
-Caja N: {{ caja.id|stringformat:"06d" }}
-Fecha: {{ fecha_cierre|date:"d/m/Y H:i" }}{% if empleado.first_name and empleado.last_name %}
-Empleado: {{ empleado.first_name }} {{ empleado.last_name }}{% else %}
-Empleado: {{ empleado.username }}{% endif %}
-Usuario: {{ empleado.username }}
+        Caja N: {{ caja.id|stringformat:"06d" }}
+        Fecha: {{ fecha_cierre|date:"d/m/Y H:i" }}{% if empleado.first_name and empleado.last_name %}
+        Empleado: {{ empleado.first_name }} {{ empleado.last_name }}{% else %}
+        Empleado: {{ empleado.username }}{% endif %}
+        Usuario: {{ empleado.username }}
 
-================================
-   RESUMEN FINANCIERO
-================================
+        ================================
+        RESUMEN FINANCIERO
+        ================================
 
-Monto Inicial: ${{ caja.monto_inicial|floatformat:2 }}
-                      
+        Monto Inicial: ${{ caja.monto_inicial|floatformat:2 }}
+                            
 
-Total Ingresado: +${{ caja.total_ingresado|floatformat:2 }}
-                     
+        Total Ingresado: +${{ caja.total_ingresado|floatformat:2 }}
+                            
 
-Total Egresado: -${{ caja.total_egresado|floatformat:2 }}
+        Total Egresado: -${{ caja.total_egresado|floatformat:2 }}
 
-================================
-   TOTALES MEDIOS DE PAGOS
-================================
+        ================================
+        TOTALES MEDIOS DE PAGOS
+        ================================
 
-Total Efectivo: ${{ total_efectivo|floatformat:2 }}
-
-
-Total Tarjeta: ${{ total_tarjeta|floatformat:2 }}
+        Total Efectivo: ${{ total_efectivo|floatformat:2 }}
 
 
-Total Transferencia: ${{ total_transferencia|floatformat:2 }}
+        Total Tarjeta: ${{ total_tarjeta|floatformat:2 }}
+
+
+        Total Transferencia: ${{ total_transferencia|floatformat:2 }}
 
 
 
-================================
-SALDO TOTAL: ${{ caja.saldo_total|floatformat:2 }}
-     
-
-</pre>
+        ================================
+        SALDO TOTAL: ${{ caja.saldo_total|floatformat:2 }}
+    </pre>
 
     <script>
         // Auto-imprimir al cargar (opcional - descomentar si quieres)
