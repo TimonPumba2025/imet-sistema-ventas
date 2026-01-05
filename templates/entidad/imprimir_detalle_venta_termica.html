@@ -102,8 +102,7 @@
                             ${{ producto.subtotal_producto|floatformat:2 }}
         {% endfor %}
         ================================
-        {% if venta.descuento > 0 %}
-        Descuento: {{ venta.descuento }}%
+        {% if venta.descuento > 0 %} Descuento: {{ venta.descuento }}%
         --------------------------------
         {% endif %}
             TOTAL
