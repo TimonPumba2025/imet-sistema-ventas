@@ -95,25 +95,20 @@
         ================================
             PRODUCTOS
         ================================
-        {% for producto in dxp %}
-        {{ producto.producto.nombre|truncatechars:30 }}{% if producto.producto.marca %}
+        {% for producto in dxp %}{{ producto.producto.nombre|truncatechars:30 }}{% if producto.producto.marca %}
         {{ producto.producto.marca }}{% endif %}
         {{ producto.cantidad_display }} x {{ producto.precio_display }}
-                            ${{ producto.subtotal_producto|floatformat:2 }}
-        {% endfor %}
+                            ${{ producto.subtotal_producto|floatformat:2 }}{% endfor %}
         ================================
         {% if venta.descuento > 0 %} Descuento: {{ venta.descuento }}%
         --------------------------------
-        {% endif %}
-            TOTAL
-            ${{ venta.total|floatformat:2 }}
+        {% endif %}TOTAL: ${{ venta.total|floatformat:2 }}
 
         ================================
-        {% if venta.metodo_pago_1 %}
-        METODO DE PAGO:
+        {% if venta.metodo_pago_1 %} METODO DE PAGO:
+        --------------------------------
         {{ venta.get_metodo_pago_1_display }}: ${{ venta.monto_pago_1|floatformat:2 }}{% if venta.metodo_pago_2 and venta.monto_pago_2 > 0 %}
-        {{ venta.get_metodo_pago_2_display }}: ${{ venta.monto_pago_2|floatformat:2 }}{% endif %}
-        {% endif %}
+        {{ venta.get_metodo_pago_2_display }}: ${{ venta.monto_pago_2|floatformat:2 }}{% endif %}{% endif %}
         ================================
         GRACIAS POR SU COMPRA!
     </pre>
