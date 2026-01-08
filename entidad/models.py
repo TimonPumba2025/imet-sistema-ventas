@@ -276,6 +276,9 @@ class NotificacionPago(models.Model):
 
 # ========== NUEVOS MODELOS PARA SISTEMA DE PUNTOS ==========
 
+# ========== MODELO RANGOPUNTOS CORREGIDO ==========
+# Reemplazar desde la línea 279 hasta 327 en tu models.py
+
 class RangoPuntos(models.Model):
     """Define los rangos de montos y puntos a otorgar"""
     monto_minimo = models.DecimalField(
@@ -307,22 +310,95 @@ class RangoPuntos(models.Model):
         return f"${self.monto_minimo} - ${self.monto_maximo} = {self.puntos_otorgados} puntos"
     
     def clean(self):
-        """Validación"""
+        """Validación mejorada con detección de rangos superpuestos"""
+        from decimal import Decimal
+        
+        # Validar que mínimo sea menor que máximo
         if self.monto_minimo >= self.monto_maximo:
             raise ValidationError("El monto mínimo debe ser menor al máximo")
+        
+        # Verificar rangos superpuestos SOLO si está activo
+        if self.activo:
+            # Obtener rangos existentes (excluyendo el actual si se está editando)
+            rangos_existentes = RangoPuntos.objects.filter(activo=True)
+            if self.pk:  # Si está editando
+                rangos_existentes = rangos_existentes.exclude(pk=self.pk)
+            
+            for rango in rangos_existentes:
+                # Verificar si hay solapamiento
+                # Caso 1: El nuevo mínimo está dentro de un rango existente
+                if rango.monto_minimo <= self.monto_minimo <= rango.monto_maximo:
+                    raise ValidationError(
+                        f"El rango se solapa con: ${rango.monto_minimo} - ${rango.monto_maximo}. "
+                        f"El monto mínimo ${self.monto_minimo} ya está dentro de ese rango."
+                    )
+                
+                # Caso 2: El nuevo máximo está dentro de un rango existente
+                if rango.monto_minimo <= self.monto_maximo <= rango.monto_maximo:
+                    raise ValidationError(
+                        f"El rango se solapa con: ${rango.monto_minimo} - ${rango.monto_maximo}. "
+                        f"El monto máximo ${self.monto_maximo} ya está dentro de ese rango."
+                    )
+                
+                # Caso 3: El nuevo rango contiene completamente a uno existente
+                if self.monto_minimo <= rango.monto_minimo and self.monto_maximo >= rango.monto_maximo:
+                    raise ValidationError(
+                        f"El rango contiene completamente al rango existente: "
+                        f"${rango.monto_minimo} - ${rango.monto_maximo}"
+                    )
+                
+                # Caso 4: El nuevo rango está contenido en uno existente
+                if rango.monto_minimo <= self.monto_minimo and rango.monto_maximo >= self.monto_maximo:
+                    raise ValidationError(
+                        f"El rango está completamente dentro del rango existente: "
+                        f"${rango.monto_minimo} - ${rango.monto_maximo}"
+                    )
+    
+    def save(self, *args, **kwargs):
+        """Override save para ejecutar validaciones"""
+        self.full_clean()
+        super().save(*args, **kwargs)
     
     @staticmethod
     def calcular_puntos(monto_compra):
-        """Calcula puntos según el monto"""
+        """
+        Calcula puntos según el monto - LÓGICA MEJORADA
+        
+        Si el monto supera todos los rangos, usa el rango más alto.
+        Si el monto está dentro de un rango, usa ese rango.
+        Si el monto es menor a todos los rangos, devuelve 0.
+        """
         try:
+            from decimal import Decimal
+            monto_compra = Decimal(str(monto_compra))
+            
+            # Buscar rango exacto (monto dentro del rango)
             rango = RangoPuntos.objects.filter(
                 activo=True,
                 monto_minimo__lte=monto_compra,
                 monto_maximo__gte=monto_compra
-            ).first()
+            ).order_by('-puntos_otorgados').first()
             
-            return rango.puntos_otorgados if rango else 0
-        except Exception:
+            if rango:
+                return rango.puntos_otorgados
+            
+            # Si no encontró rango exacto, verificar si el monto supera todos los rangos
+            # En ese caso, usar el rango más alto
+            rango_mas_alto = RangoPuntos.objects.filter(
+                activo=True,
+                monto_maximo__lt=monto_compra  # Monto supera este rango
+            ).order_by('-monto_maximo').first()
+            
+            if rango_mas_alto:
+                # El monto supera el rango más alto, usar sus puntos
+                return rango_mas_alto.puntos_otorgados
+            
+            # Si llegamos aquí, el monto es menor a todos los rangos
+            return 0
+            
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Error al calcular puntos: {str(e)}")
             return 0
 
 
